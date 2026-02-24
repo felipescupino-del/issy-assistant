@@ -9,6 +9,7 @@ import { loadHistory, saveMessage } from '../services/history';
 import { classifyIntent } from '../services/intent';
 import { generateResponse } from '../services/ai';
 import { sendTextMessage, computeDelaySeconds } from '../services/whatsapp';
+import { detectProductType } from '../data/insuranceFacts';
 
 const router = Router();
 
@@ -52,19 +53,22 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   // Step 5: Save the incoming user message
   await saveMessage(phone, 'user', text);
 
-  // Step 6: Generate AI response (CORE-05 — fallback handled inside generateResponse)
-  const nameToUse = firstMsg ? senderName : contact.name;
-  const responseText = await generateResponse(nameToUse, history, text, intent);
+  // Step 6: Detect product type for facts injection (KNOW-01)
+  const productType = detectProductType(text);
 
-  // Step 7: Send response with typing indicator (UX-01)
+  // Step 7: Generate AI response (CORE-05 — fallback handled inside generateResponse)
+  const nameToUse = firstMsg ? senderName : contact.name;
+  const responseText = await generateResponse(nameToUse, history, text, intent, productType);
+
+  // Step 8: Send response with typing indicator (UX-01)
   // computeDelaySeconds() returns a random int between HUMAN_DELAY_MIN_MS/1000 and HUMAN_DELAY_MAX_MS/1000
   const delaySeconds = computeDelaySeconds();
   await sendTextMessage(phone, responseText, delaySeconds);
 
-  // Step 8: Save assistant response AFTER send succeeds — no phantom messages in history
+  // Step 9: Save assistant response AFTER send succeeds — no phantom messages in history
   await saveMessage(phone, 'assistant', responseText);
 
-  console.log(`[webhook] Responded to ${phone} (intent=${intent}, delay=${delaySeconds}s, firstMsg=${firstMsg})`);
+  console.log(`[webhook] Responded to ${phone} (intent=${intent}, product=${productType ?? 'none'}, delay=${delaySeconds}s, firstMsg=${firstMsg})`);
 }
 
 export default router;
