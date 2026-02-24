@@ -29,9 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A test WhatsApp message from a dev phone number reaches the webhook endpoint and is logged (no processing yet)
   3. PostgreSQL database has all tables: contacts, conversations, messages, conversation_state — confirmed by running `prisma migrate status`
   4. Dev phone number is separate from any production number — confirmed by config inspection
-**Plans**: TBD
+**Plans**: 3 plans
 
-Plans: TBD
+Plans:
+- [ ] 01-01-PLAN.md — Install Prisma, replace pg/Evolution config, create Z-API types and PrismaClient singleton
+- [ ] 01-02-PLAN.md — Write Prisma schema (Contact, Conversation, Message) and run initial migration to Supabase
+- [ ] 01-03-PLAN.md — Rewrite Express server and webhook handler for Z-API; human-verify real message receipt
 
 ### Phase 2: Core Pipeline
 **Goal**: A broker can send any message on WhatsApp and the bot responds coherently using conversation history and intelligent intent routing
