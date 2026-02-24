@@ -1,5 +1,5 @@
 // src/routes/webhook.ts
-// Phase 2: Full message pipeline — receive → respond end-to-end (CORE-01)
+// Phase 3: Full message pipeline with insurance knowledge layer, human handoff, and admin commands
 
 import { Router } from 'express';
 import { parseZApiPayload, ZApiWebhookPayload } from '../types/zapi';
@@ -10,6 +10,8 @@ import { classifyIntent } from '../services/intent';
 import { generateResponse } from '../services/ai';
 import { sendTextMessage, computeDelaySeconds } from '../services/whatsapp';
 import { detectProductType } from '../data/insuranceFacts';
+import { isAdminCommand, isAdminPhone, handleAdminCommand } from '../services/admin';
+import { executeHandoff } from '../services/handoff';
 
 const router = Router();
 
@@ -36,7 +38,23 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   const contact = await upsertContact(phone, senderName);
   const firstMsg = isFirstMessage(contact);
 
-  // Step 2: Human mode gate — check BEFORE any OpenAI call (CORE-04)
+  // Step 2: Classify intent (CORE-03)
+  // Must run BEFORE admin check to allow /humano to flow through normal pipeline.
+  // Must run BEFORE humanMode gate so handoff intent is captured even if broker re-sends /humano.
+  const intent = classifyIntent(text);
+
+  // Step 3: Admin command check — BEFORE human mode gate (HAND-03)
+  // /bot must work even when humanMode=true (otherwise deadlock — can't restore bot).
+  // Only /bot and /status are admin commands. /humano flows through normal intent pipeline.
+  if (isAdminCommand(text)) {
+    if (isAdminPhone(phone)) {
+      await handleAdminCommand(phone, text);
+    }
+    // Non-admin sending /bot or /status: silently ignore (no response, no processing)
+    return;
+  }
+
+  // Step 4: Human mode gate — check BEFORE any OpenAI call (CORE-04)
   // If humanMode is true, a human agent has taken over. Do not respond.
   const conversation = await getOrCreateConversation(phone);
   if (isHumanMode(conversation)) {
@@ -44,28 +62,34 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
     return;
   }
 
-  // Step 3: Classify intent (CORE-03)
-  const intent = classifyIntent(text);
+  // Step 5: Handoff branch — exit pipeline, bot goes silent (HAND-01, HAND-02)
+  // Runs after humanMode gate: a second /humano while already in human mode is silenced at Step 4.
+  if (intent === 'handoff') {
+    const handoffHistory = await loadHistory(phone);
+    await saveMessage(phone, 'user', text);  // save the /humano message before handoff
+    await executeHandoff(phone, contact, handoffHistory);
+    return;  // pipeline ends — bot is now in human mode
+  }
 
-  // Step 4: Load history BEFORE saving current user message — prevents doubling (CORE-04)
+  // Step 6: Load history BEFORE saving current user message — prevents doubling (CORE-04)
   const history = await loadHistory(phone);
 
-  // Step 5: Save the incoming user message
+  // Step 7: Save the incoming user message
   await saveMessage(phone, 'user', text);
 
-  // Step 6: Detect product type for facts injection (KNOW-01)
+  // Step 8: Detect product type for facts injection (KNOW-01)
   const productType = detectProductType(text);
 
-  // Step 7: Generate AI response (CORE-05 — fallback handled inside generateResponse)
+  // Step 9: Generate AI response (CORE-05 — fallback handled inside generateResponse)
   const nameToUse = firstMsg ? senderName : contact.name;
   const responseText = await generateResponse(nameToUse, history, text, intent, productType);
 
-  // Step 8: Send response with typing indicator (UX-01)
+  // Step 10: Send response with typing indicator (UX-01)
   // computeDelaySeconds() returns a random int between HUMAN_DELAY_MIN_MS/1000 and HUMAN_DELAY_MAX_MS/1000
   const delaySeconds = computeDelaySeconds();
   await sendTextMessage(phone, responseText, delaySeconds);
 
-  // Step 9: Save assistant response AFTER send succeeds — no phantom messages in history
+  // Step 11: Save assistant response AFTER send succeeds — no phantom messages in history
   await saveMessage(phone, 'assistant', responseText);
 
   console.log(`[webhook] Responded to ${phone} (intent=${intent}, product=${productType ?? 'none'}, delay=${delaySeconds}s, firstMsg=${firstMsg})`);
