@@ -31,9 +31,9 @@ Requirements for demo release targeting assessoria with 50+ brokers.
 
 ### Handoff & Admin
 
-- [ ] **HAND-01**: Bot transfere conversa para humano no mesmo WhatsApp quando solicitado
-- [ ] **HAND-02**: Bot envia pacote de contexto estruturado (resumo sintetizado) ao transferir
-- [ ] **HAND-03**: Equipe admin controla bot via comandos (/bot, /status, /humano)
+- [x] **HAND-01**: Bot transfere conversa para humano no mesmo WhatsApp quando solicitado
+- [x] **HAND-02**: Bot envia pacote de contexto estruturado (resumo sintetizado) ao transferir
+- [x] **HAND-03**: Equipe admin controla bot via comandos (/bot, /status, /humano)
 
 ### UX
 
@@ -97,9 +97,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUOT-02 | Phase 4 | Pending |
 | QUOT-03 | Phase 4 | Pending |
 | QUOT-04 | Phase 4 | Pending |
-| HAND-01 | Phase 3 | Pending |
-| HAND-02 | Phase 3 | Pending |
-| HAND-03 | Phase 3 | Pending |
+| HAND-01 | Phase 3 | Complete |
+| HAND-02 | Phase 3 | Complete |
+| HAND-03 | Phase 3 | Complete |
 | UX-01 | Phase 2 | Complete |
 
 **Coverage:**

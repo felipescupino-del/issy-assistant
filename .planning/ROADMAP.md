@@ -66,8 +66,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Insurance knowledge layer (facts file, product detection, system prompt injection)
-- [ ] 03-02-PLAN.md — Handoff flow and admin commands (setHumanMode, briefing, /bot, /status)
+- [x] 03-01-PLAN.md — Insurance knowledge layer (facts file, product detection, system prompt injection)
+- [x] 03-02-PLAN.md — Handoff flow and admin commands (setHumanMode, briefing, /bot, /status)
 
 ### Phase 4: Quote Flow (Health Insurance)
 **Goal**: A broker can complete an end-to-end health insurance quote entirely within WhatsApp — from intent detection through data collection to receiving a mocked price with coverage summary
@@ -104,8 +104,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure | 0/TBD | Not started | - |
-| 2. Core Pipeline | 0/TBD | Not started | - |
-| 3. Insurance Q&A and Handoff | 1/2 | In Progress|  |
+| 1. Infrastructure | 3/3 | Code complete | 2026-02-24 |
+| 2. Core Pipeline | 3/3 | Code complete | 2026-02-24 |
+| 3. Insurance Q&A and Handoff | 2/2 | Code complete | 2026-02-24 |
 | 4. Quote Flow (Health Insurance) | 0/TBD | Not started | - |
 | 5. Polish and Demo Hardening | 0/TBD | Not started | - |

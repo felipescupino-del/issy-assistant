@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Liberar o corretor de seguros da operação repetitiva para que ele gaste mais tempo vendendo
-**Current focus:** Phase 3 — Insurance Q&A and Handoff
+**Current focus:** Phase 3 complete — Phase 4 (Quote Flow) next
 
 ## Current Position
 
-Phase: 3 of 5 (Insurance Q&A and Handoff) — IN PROGRESS
-Plan: 1 of 2 in current phase
-Status: Phase 3 plan 01 complete. Insurance knowledge layer wired. Plan 02 (handoff logic) next.
-Last activity: 2026-02-24 — Phase 3 plan 01 executed (insurance facts + product detection)
+Phase: 3 of 5 (Insurance Q&A and Handoff) — COMPLETE
+Plan: 2 of 2 in current phase
+Status: Phase 3 complete. Insurance knowledge layer + human handoff + admin commands all wired. Phase 4 (Quote Flow — Health Insurance) next.
+Last activity: 2026-02-24 — Phase 3 plan 02 executed (handoff logic and admin commands)
 
-Progress: [████░░░░░░] 45%
+Progress: [█████░░░░░] 50%
 
 ## Resume Instructions
 
-Phase 3 plan 01 complete. Continue with:
+Phase 3 complete. Continue with Phase 4:
 ```
-/gsd:execute-phase 3
+/gsd:execute-phase 4
 ```
-This will execute phase 3 plan 02 (handoff and human takeover logic).
+This will execute Phase 4 (Quote Flow — Health Insurance).
 
 ## What's Done (Phase 1)
 
@@ -39,6 +39,7 @@ This will execute phase 3 plan 02 (handoff and human takeover logic).
 ## What's Done (Phase 3)
 
 - Plan 03-01: Insurance facts layer — 5 product types with curated facts, detectProductType, dynamic system prompt injection (KNOW-01 through KNOW-04)
+- Plan 03-02: Human handoff and admin commands — setHumanMode, handoff service (buildHandoffBriefing + executeHandoff), admin service (isAdminPhone, isAdminCommand, handleAdminCommand), webhook pipeline rewired (HAND-01, HAND-02, HAND-03)
 
 ## What's Pending (Before Phase 1 is "complete")
 
@@ -48,15 +49,11 @@ This will execute phase 3 plan 02 (handoff and human takeover logic).
 4. Run `npm run dev` to verify server starts and connects to DB
 5. Configure Z-API webhook URL → verify real WhatsApp message reaches endpoint
 
-## Resume Instructions
-
-Phase 2 plan 01 complete. Continue with next plan in Phase 2.
-
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7 (Phase 1: 3, Phase 2: 3, Phase 3: 1)
-- Average duration: ~8-10 min
+- Total plans completed: 8 (Phase 1: 3, Phase 2: 3, Phase 3: 2)
+- Average duration: ~8 min
 - Total execution time: —
 
 **By Phase:**
@@ -65,7 +62,7 @@ Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 |-------|-------|--------|
 | 1. Infrastructure | 3/3 | Code complete (pending credentials) |
 | 2. Core Pipeline | 3/3 | Code complete |
-| 3. Insurance Q&A and Handoff | 1/2 | In progress |
+| 3. Insurance Q&A and Handoff | 2/2 | Code complete |
 | 4. Quote Flow (Health Insurance) | 0/TBD | Not started |
 | 5. Polish and Demo Hardening | 0/TBD | Not started |
 
@@ -94,6 +91,11 @@ Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 - [03-01]: No hardcoded R$ values — all financial references use [ASSESSORIA] marker
 - [03-01]: empresarial keywords checked before auto to prevent substring collision
 - [03-01]: productType: ProductType | null = null default keeps generateResponse backwards-compatible
+- [03-02]: classifyIntent BEFORE admin check so /humano routes to handoff branch (not silently dropped)
+- [03-02]: Admin check BEFORE getOrCreateConversation to prevent /bot deadlock when humanMode=true
+- [03-02]: buildHandoffBriefing is pure (no DB, no GPT) — deterministic and independently testable
+- [03-02]: executeHandoff sends briefing BEFORE setHumanMode(true) — bot speaks last words before going silent
+- [03-02]: isAdminCommand returns false for /humano — handoff must flow through intent pipeline
 
 ### Blockers/Concerns
 
@@ -102,5 +104,5 @@ Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 03-01-PLAN.md — insurance knowledge layer wired, 2/2 tasks done
-Resume file: .planning/phases/03-insurance-qa-handoff/03-01-SUMMARY.md
+Stopped at: Completed 03-02-PLAN.md — human handoff + admin commands wired, 2/2 tasks done, Phase 3 complete
+Resume file: .planning/phases/03-insurance-qa-handoff/03-02-SUMMARY.md
