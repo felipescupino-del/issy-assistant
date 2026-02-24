@@ -46,9 +46,12 @@ Plans:
   3. Broker sends a follow-up message and bot's response demonstrates awareness of the previous exchange (conversation history in context)
   4. Broker types something the bot cannot answer; bot says it doesn't know and offers to escalate to a human
   5. Bot response arrives after a visible typing indicator and a 1-3 second natural delay — never instant
-**Plans**: TBD
+**Plans**: 3 plans
 
-Plans: TBD
+Plans:
+- [ ] 02-01-PLAN.md — Contact + conversation services (types, upsertContact, getOrCreateConversation)
+- [ ] 02-02-PLAN.md — History + intent + AI + WhatsApp typing indicator services
+- [ ] 02-03-PLAN.md — Webhook pipeline wiring + human-verify end-to-end
 
 ### Phase 3: Insurance Q&A and Handoff
 **Goal**: The bot is a credible insurance knowledge assistant and can hand off to a human agent with zero loss of context
