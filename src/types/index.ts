@@ -7,3 +7,14 @@ export interface ConversationContext {
   isFirstMessage: boolean;
   humanMode: boolean;
 }
+
+export type ProductType = 'saude' | 'auto' | 'vida' | 'residencial' | 'empresarial';
+
+export interface InsuranceFacts {
+  productName: string;
+  description: string;
+  commonCoverages: string[];
+  commonExclusions: string[];
+  acceptanceRules: string[];
+  importantNotes: string[];
+}
