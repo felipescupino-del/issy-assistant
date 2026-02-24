@@ -5,22 +5,26 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Liberar o corretor de seguros da operação repetitiva para que ele gaste mais tempo vendendo
-**Current focus:** Phase 1 → Phase 2 transition
+**Current focus:** Phase 2 execution — Core Pipeline
 
 ## Current Position
 
-Phase: 1 of 5 (Infrastructure) — CODE COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase 1 code written. Pending: Supabase credentials + Z-API setup + migration.
-Last activity: 2026-02-24 — All 3 plans executed (code only, no credentials yet)
+Phase: 2 of 5 (Core Pipeline) — IN PROGRESS
+Plan: 1 of TBD in current phase
+Status: Phase 2 plan 01 complete. Contact + conversation services written.
+Last activity: 2026-02-24 — 02-01 executed (contact/conversation persistence services)
 
-Progress: [██░░░░░░░░] 20%
+Progress: [███░░░░░░░] 24%
 
 ## What's Done (Phase 1)
 
 - Plan 01-01: Prisma installed, config rewritten for Z-API, types defined, .env.example ready
 - Plan 01-02: Prisma schema with Contact, Conversation, Message models — validated + client generated
 - Plan 01-03: Express server rewritten with Prisma + Z-API webhook handler + whatsapp send service
+
+## What's Done (Phase 2)
+
+- Plan 02-01: ConversationContext type, upsertContact/isFirstMessage, getOrCreateConversation/isHumanMode services
 
 ## What's Pending (Before Phase 1 is "complete")
 
@@ -32,19 +36,13 @@ Progress: [██░░░░░░░░] 20%
 
 ## Resume Instructions
 
-Phase 1 code is complete. To finish Phase 1:
-1. Create .env with real credentials (copy from .env.example)
-2. Run: `npx prisma migrate dev --name init`
-3. Run: `npm run dev`
-4. Test webhook with real WhatsApp message
-
-Then proceed: `/gsd:plan-phase 2` or `/gsd:execute-phase 2`
+Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3 (Phase 1)
-- Average duration: —
+- Total plans completed: 4 (Phase 1: 3, Phase 2: 1)
+- Average duration: ~10 min (02-01)
 - Total execution time: —
 
 **By Phase:**
@@ -52,7 +50,7 @@ Then proceed: `/gsd:plan-phase 2` or `/gsd:execute-phase 2`
 | Phase | Plans | Status |
 |-------|-------|--------|
 | 1. Infrastructure | 3/3 | Code complete (pending credentials) |
-| 2. Core Pipeline | 0/TBD | Not started |
+| 2. Core Pipeline | 1/TBD | In progress |
 | 3. Insurance Q&A and Handoff | 0/TBD | Not started |
 | 4. Quote Flow (Health Insurance) | 0/TBD | Not started |
 | 5. Polish and Demo Hardening | 0/TBD | Not started |
@@ -71,6 +69,8 @@ Then proceed: `/gsd:plan-phase 2` or `/gsd:execute-phase 2`
 - [Phase 1]: cloudflared como tunnel de dev (não ngrok)
 - [Phase 1]: Código inglês, banco português
 - [Init]: Quote flow v1 foca em saúde (QUOT-01) — não auto
+- [02-01]: isFirstMessage usa comparação numérica getTime() (<1000ms), não === (evita bug de referência Date)
+- [02-01]: getOrCreateConversation usa update:{} (no-op) para preservar humanMode e estado da cotação
 
 ### Blockers/Concerns
 
@@ -80,5 +80,5 @@ Then proceed: `/gsd:plan-phase 2` or `/gsd:execute-phase 2`
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Phase 1 code complete — waiting for user credentials
-Resume file: .planning/phases/01-infrastructure/01-CONTEXT.md
+Stopped at: Completed 02-01-PLAN.md — contact and conversation persistence services
+Resume file: .planning/phases/02-core-pipeline/02-01-SUMMARY.md
