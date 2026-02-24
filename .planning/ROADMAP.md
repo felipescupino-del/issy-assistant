@@ -63,9 +63,11 @@ Plans:
   3. Broker types `/humano` or asks to speak with a person; bot sets handoff mode, sends a structured briefing message to the human agent in the same WhatsApp thread, and confirms the transfer to the broker
   4. After handoff, bot does not respond to broker messages until admin returns control — no double-response race condition
   5. Admin sends `/bot` or `/status` from an allowlisted phone number; command executes correctly; non-admin numbers receive no response to these commands
-**Plans**: TBD
+**Plans**: 2 plans
 
-Plans: TBD
+Plans:
+- [ ] 03-01-PLAN.md — Insurance knowledge layer (facts file, product detection, system prompt injection)
+- [ ] 03-02-PLAN.md — Handoff flow and admin commands (setHumanMode, briefing, /bot, /status)
 
 ### Phase 4: Quote Flow (Health Insurance)
 **Goal**: A broker can complete an end-to-end health insurance quote entirely within WhatsApp — from intent detection through data collection to receiving a mocked price with coverage summary
