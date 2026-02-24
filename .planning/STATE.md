@@ -5,69 +5,80 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Liberar o corretor de seguros da operação repetitiva para que ele gaste mais tempo vendendo
-**Current focus:** Phase 1 — Infrastructure
+**Current focus:** Phase 1 → Phase 2 transition
 
 ## Current Position
 
-Phase: 1 of 5 (Infrastructure)
-Plan: 0 of 3 in current phase
-Status: Ready to execute (3 plans across 3 waves — all planned and verified)
-Last activity: 2026-02-24 — Phase 1 planned: 3 plans in 3 waves, verification passed
+Phase: 1 of 5 (Infrastructure) — CODE COMPLETE
+Plan: 3 of 3 in current phase
+Status: Phase 1 code written. Pending: Supabase credentials + Z-API setup + migration.
+Last activity: 2026-02-24 — All 3 plans executed (code only, no credentials yet)
+
+Progress: [██░░░░░░░░] 20%
+
+## What's Done (Phase 1)
+
+- Plan 01-01: Prisma installed, config rewritten for Z-API, types defined, .env.example ready
+- Plan 01-02: Prisma schema with Contact, Conversation, Message models — validated + client generated
+- Plan 01-03: Express server rewritten with Prisma + Z-API webhook handler + whatsapp send service
+
+## What's Pending (Before Phase 1 is "complete")
+
+1. User creates Supabase project → copies DATABASE_URL and DIRECT_URL to .env
+2. User creates Z-API instance → copies ZAPI_INSTANCE_ID, ZAPI_INSTANCE_TOKEN, ZAPI_CLIENT_TOKEN to .env
+3. Run `npx prisma migrate dev --name init` to create tables in Supabase
+4. Run `npm run dev` to verify server starts and connects to DB
+5. Configure Z-API webhook URL → verify real WhatsApp message reaches endpoint
 
 ## Resume Instructions
 
-Context window ran low during execute-phase. Resume with:
-```
-/gsd:execute-phase 1
-```
-Wave 1 (Plan 01-01) has a human-action checkpoint: Supabase + Z-API credentials setup.
-All 3 plans are incomplete. Execute sequentially: Wave 1 → 2 → 3.
+Phase 1 code is complete. To finish Phase 1:
+1. Create .env with real credentials (copy from .env.example)
+2. Run: `npx prisma migrate dev --name init`
+3. Run: `npm run dev`
+4. Test webhook with real WhatsApp message
 
-Progress: [░░░░░░░░░░] 0%
+Then proceed: `/gsd:plan-phase 2` or `/gsd:execute-phase 2`
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
+- Total plans completed: 3 (Phase 1)
 - Average duration: —
-- Total execution time: 0 hours
+- Total execution time: —
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| - | - | - | - |
-
-**Recent Trend:**
-- Last 5 plans: none yet
-- Trend: —
-
-*Updated after each plan completion*
+| Phase | Plans | Status |
+|-------|-------|--------|
+| 1. Infrastructure | 3/3 | Code complete (pending credentials) |
+| 2. Core Pipeline | 0/TBD | Not started |
+| 3. Insurance Q&A and Handoff | 0/TBD | Not started |
+| 4. Quote Flow (Health Insurance) | 0/TBD | Not started |
+| 5. Polish and Demo Hardening | 0/TBD | Not started |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- [Init]: Começar código limpo — arquitetura certa desde o início, não evoluir codebase existente
-- [Init]: Preços mockados para demo — assessoria fornecerá tabelas reais depois
-- [Init]: Conhecimento geral sobre seguros sem PDFs — simplifica v1
-- [Init]: Evolution API como provedor principal WhatsApp
-- [Init]: Quote flow v1 foca em saúde (QUOT-01) — não auto como o código anterior
-
-### Pending Todos
-
-None yet.
+- [Init]: Começar código limpo — arquitetura certa desde o início
+- [Init]: Preços mockados para demo
+- [Init]: Conhecimento geral sobre seguros sem PDFs
+- [Phase 1]: Z-API como provedor único (não Evolution API)
+- [Phase 1]: Supabase para PostgreSQL (cloud, free tier)
+- [Phase 1]: Prisma 7 com prisma-client generator
+- [Phase 1]: Quote state como JSONB na tabela conversas (não tabela separada)
+- [Phase 1]: cloudflared como tunnel de dev (não ngrok)
+- [Phase 1]: Código inglês, banco português
+- [Init]: Quote flow v1 foca em saúde (QUOT-01) — não auto
 
 ### Blockers/Concerns
 
-- [Phase 2]: Known facts layer content (coberturas, regras de aceitação dos produtos demo) precisa de input da assessoria antes de Phase 3 para evitar alucinação
-- [Phase 1]: Evolution API webhook secret validation — documentação parcialmente inacessível; verificar via source do repo ou exemplos da comunidade
+- [Phase 1]: Supabase + Z-API credentials needed before migration and live testing
+- [Phase 3]: Known facts layer content needs assessoria input to prevent hallucination
 
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Roadmap created, STATE.md initialized — ready to plan Phase 1
-Resume file: None
+Stopped at: Phase 1 code complete — waiting for user credentials
+Resume file: .planning/phases/01-infrastructure/01-CONTEXT.md
