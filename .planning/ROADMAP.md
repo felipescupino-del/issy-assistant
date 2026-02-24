@@ -106,6 +106,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 0/TBD | Not started | - |
 | 2. Core Pipeline | 0/TBD | Not started | - |
-| 3. Insurance Q&A and Handoff | 0/TBD | Not started | - |
+| 3. Insurance Q&A and Handoff | 1/2 | In Progress|  |
 | 4. Quote Flow (Health Insurance) | 0/TBD | Not started | - |
 | 5. Polish and Demo Hardening | 0/TBD | Not started | - |

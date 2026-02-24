@@ -11,16 +11,16 @@ Requirements for demo release targeting assessoria with 50+ brokers.
 
 - [ ] **CORE-01**: Bot recebe mensagens do WhatsApp via webhook e responde no mesmo canal
 - [ ] **CORE-02**: Bot identifica o corretor pelo telefone e captura nome na primeira interação
-- [ ] **CORE-03**: Bot classifica intenção do corretor (Q&A, cotação, handoff humano, conversa geral)
+- [x] **CORE-03**: Bot classifica intenção do corretor (Q&A, cotação, handoff humano, conversa geral)
 - [ ] **CORE-04**: Bot mantém histórico de conversa por contato para contexto nas respostas
-- [ ] **CORE-05**: Bot responde "não sei" e oferece escalação humana quando não tem a resposta
+- [x] **CORE-05**: Bot responde "não sei" e oferece escalação humana quando não tem a resposta
 
 ### Insurance Knowledge
 
-- [ ] **KNOW-01**: Bot responde dúvidas sobre produtos de seguros (saúde, auto, vida, residencial, empresarial)
-- [ ] **KNOW-02**: Bot responde sobre coberturas, exclusões e condições de cada produto
-- [ ] **KNOW-03**: Bot responde sobre regras de aceitação (elegibilidade do cliente)
-- [ ] **KNOW-04**: Bot usa tom profissional e conciso adequado para corretor de seguros
+- [x] **KNOW-01**: Bot responde dúvidas sobre produtos de seguros (saúde, auto, vida, residencial, empresarial)
+- [x] **KNOW-02**: Bot responde sobre coberturas, exclusões e condições de cada produto
+- [x] **KNOW-03**: Bot responde sobre regras de aceitação (elegibilidade do cliente)
+- [x] **KNOW-04**: Bot usa tom profissional e conciso adequado para corretor de seguros
 
 ### Quote Flow
 
@@ -37,7 +37,7 @@ Requirements for demo release targeting assessoria with 50+ brokers.
 
 ### UX
 
-- [ ] **UX-01**: Bot aguarda 1-3s com indicador de digitação antes de responder
+- [x] **UX-01**: Bot aguarda 1-3s com indicador de digitação antes de responder
 
 ## v2 Requirements
 
@@ -86,13 +86,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | CORE-01 | Phase 2 | Pending |
 | CORE-02 | Phase 2 | Pending |
-| CORE-03 | Phase 2 | Pending |
+| CORE-03 | Phase 2 | Complete |
 | CORE-04 | Phase 2 | Pending |
-| CORE-05 | Phase 2 | Pending |
-| KNOW-01 | Phase 3 | Pending |
-| KNOW-02 | Phase 3 | Pending |
-| KNOW-03 | Phase 3 | Pending |
-| KNOW-04 | Phase 3 | Pending |
+| CORE-05 | Phase 2 | Complete |
+| KNOW-01 | Phase 3 | Complete |
+| KNOW-02 | Phase 3 | Complete |
+| KNOW-03 | Phase 3 | Complete |
+| KNOW-04 | Phase 3 | Complete |
 | QUOT-01 | Phase 4 | Pending |
 | QUOT-02 | Phase 4 | Pending |
 | QUOT-03 | Phase 4 | Pending |
@@ -100,7 +100,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HAND-01 | Phase 3 | Pending |
 | HAND-02 | Phase 3 | Pending |
 | HAND-03 | Phase 3 | Pending |
-| UX-01 | Phase 2 | Pending |
+| UX-01 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 17 total

@@ -9,20 +9,20 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 
 ## Current Position
 
-Phase: 3 of 5 (Insurance Q&A and Handoff) — READY TO PLAN
-Plan: 0 of TBD in current phase
-Status: Phase 2 code complete (3/3 plans). Phase 3 research failed (context limit). Need to re-research and plan.
-Last activity: 2026-02-24 — Phase 2 all plans executed, Phase 3 research attempted
+Phase: 3 of 5 (Insurance Q&A and Handoff) — IN PROGRESS
+Plan: 1 of 2 in current phase
+Status: Phase 3 plan 01 complete. Insurance knowledge layer wired. Plan 02 (handoff logic) next.
+Last activity: 2026-02-24 — Phase 3 plan 01 executed (insurance facts + product detection)
 
-Progress: [████░░░░░░] 40%
+Progress: [████░░░░░░] 45%
 
 ## Resume Instructions
 
-Phase 3 directory created but empty. Resume with:
+Phase 3 plan 01 complete. Continue with:
 ```
-/gsd:plan-phase 3
+/gsd:execute-phase 3
 ```
-This will re-run research, then plan, then verify.
+This will execute phase 3 plan 02 (handoff and human takeover logic).
 
 ## What's Done (Phase 1)
 
@@ -35,6 +35,10 @@ This will re-run research, then plan, then verify.
 - Plan 02-01: ConversationContext type, upsertContact/isFirstMessage, getOrCreateConversation/isHumanMode services
 - Plan 02-02: history/intent/ai/whatsapp services — loadHistory, saveMessage, classifyIntent, generateResponse, sendTextMessage
 - Plan 02-03: webhook.ts pipeline wired — 8-step processMessage() connecting all Phase 2 services (CORE-01 code-complete)
+
+## What's Done (Phase 3)
+
+- Plan 03-01: Insurance facts layer — 5 product types with curated facts, detectProductType, dynamic system prompt injection (KNOW-01 through KNOW-04)
 
 ## What's Pending (Before Phase 1 is "complete")
 
@@ -51,8 +55,8 @@ Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (Phase 1: 3, Phase 2: 1)
-- Average duration: ~10 min (02-01)
+- Total plans completed: 7 (Phase 1: 3, Phase 2: 3, Phase 3: 1)
+- Average duration: ~8-10 min
 - Total execution time: —
 
 **By Phase:**
@@ -60,11 +64,10 @@ Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 | Phase | Plans | Status |
 |-------|-------|--------|
 | 1. Infrastructure | 3/3 | Code complete (pending credentials) |
-| 2. Core Pipeline | 1/TBD | In progress |
-| 3. Insurance Q&A and Handoff | 0/TBD | Not started |
+| 2. Core Pipeline | 3/3 | Code complete |
+| 3. Insurance Q&A and Handoff | 1/2 | In progress |
 | 4. Quote Flow (Health Insurance) | 0/TBD | Not started |
 | 5. Polish and Demo Hardening | 0/TBD | Not started |
-| Phase 02-core-pipeline P02 | 82 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -87,14 +90,17 @@ Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 - [Phase 02-core-pipeline]: axios timeout 20_000ms for Z-API delayTyping (was 10_000, caused ETIMEDOUT)
 - [02-03]: loadHistory before saveMessage(user) prevents current message doubling in LLM context
 - [02-03]: saveMessage(assistant) after sendTextMessage prevents phantom messages on send failure
+- [03-01]: Colocate detectProductType in insuranceFacts.ts — knowledge layer is self-contained
+- [03-01]: No hardcoded R$ values — all financial references use [ASSESSORIA] marker
+- [03-01]: empresarial keywords checked before auto to prevent substring collision
+- [03-01]: productType: ProductType | null = null default keeps generateResponse backwards-compatible
 
 ### Blockers/Concerns
 
 - [Phase 1]: Supabase + Z-API credentials needed before migration and live testing
-- [Phase 3]: Known facts layer content needs assessoria input to prevent hallucination
 
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 02-03-PLAN.md — webhook pipeline wired, Task 2 human-verify deferred pending credentials
-Resume file: .planning/phases/02-core-pipeline/02-03-SUMMARY.md
+Stopped at: Completed 03-01-PLAN.md — insurance knowledge layer wired, 2/2 tasks done
+Resume file: .planning/phases/03-insurance-qa-handoff/03-01-SUMMARY.md
