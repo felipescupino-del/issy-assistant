@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Infrastructure** - Running server, database schema, and webhook tunnel ready for development
 - [ ] **Phase 2: Core Pipeline** - Broker sends a WhatsApp message and bot responds with AI using full conversation context
 - [ ] **Phase 3: Insurance Q&A and Handoff** - Bot answers insurance questions and transfers to a human with structured context
-- [ ] **Phase 4: Quote Flow (Health Insurance)** - Bot guides broker through a complete health insurance quote and returns a mocked price
+- [x] **Phase 4: Quote Flow (Health Insurance)** - Bot guides broker through a complete health insurance quote and returns a mocked price (completed 2026-02-24)
 - [ ] **Phase 5: Polish and Demo Hardening** - System is reliable and professional enough to demo to a 50-broker assessoria
 
 ## Phase Details
@@ -109,5 +109,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Infrastructure | 3/3 | Code complete | 2026-02-24 |
 | 2. Core Pipeline | 3/3 | Code complete | 2026-02-24 |
 | 3. Insurance Q&A and Handoff | 2/2 | Code complete | 2026-02-24 |
-| 4. Quote Flow (Health Insurance) | 1/2 | In Progress|  |
+| 4. Quote Flow (Health Insurance) | 2/2 | Complete   | 2026-02-24 |
 | 5. Polish and Demo Hardening | 0/TBD | Not started | - |

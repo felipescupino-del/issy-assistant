@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Liberar o corretor de seguros da operação repetitiva para que ele gaste mais tempo vendendo
-**Current focus:** Phase 4 in progress — Quote flow state machine built, Plan 02 (webhook wiring) next
+**Current focus:** Phase 4 complete — Quote flow fully wired. Phase 5 (Polish and Demo Hardening) next.
 
 ## Current Position
 
-Phase: 4 of 5 (Quote Flow — Health Insurance) — IN PROGRESS
-Plan: 1 of 2 in current phase — COMPLETE
-Status: Phase 4 Plan 01 complete. QuoteState types, mock data, and complete state machine built. Plan 02 (webhook wiring) next.
-Last activity: 2026-02-24 — Phase 4 plan 01 executed (types, mock data, quoteService state machine)
+Phase: 4 of 5 (Quote Flow — Health Insurance) — COMPLETE
+Plan: 2 of 2 in current phase — COMPLETE
+Status: Phase 4 complete. Quote flow state machine (Plan 01) and webhook wiring (Plan 02) both done. Phase 5 next.
+Last activity: 2026-02-24 — Phase 4 plan 02 executed (webhook quote branch, ai.ts prompt update)
 
-Progress: [██████░░░░] 60%
+Progress: [████████░░] 75%
 
 ## Resume Instructions
 
-Phase 4 Plan 01 complete. Continue with Plan 02:
+Phase 4 complete. Start Phase 5:
 ```
-/gsd:execute-phase 4
+/gsd:execute-phase 5
 ```
-This will execute Phase 4 Plan 02 (wire quoteService into webhook pipeline).
+This will execute Phase 5 (Polish and Demo Hardening).
 
 ## What's Done (Phase 1)
 
@@ -44,6 +44,7 @@ This will execute Phase 4 Plan 02 (wire quoteService into webhook pipeline).
 ## What's Done (Phase 4)
 
 - Plan 04-01: QuoteState/QuoteStep types, HealthQuotePlan mock data, complete quoteService.ts state machine (handleQuoteMessage, getQuoteState, 4 step handlers, GPT extraction, retry logic, quote output builder)
+- Plan 04-02: Quote branch wired into webhook processMessage Steps 6-7 (active session priority routing + new quote intent handling + save-before-process + short-circuit return). ai.ts quote prompt updated (no more "em breve"). Phase 4 code-complete.
 
 ## What's Pending (Before Phase 1 is "complete")
 
@@ -56,7 +57,7 @@ This will execute Phase 4 Plan 02 (wire quoteService into webhook pipeline).
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9 (Phase 1: 3, Phase 2: 3, Phase 3: 2, Phase 4: 1)
+- Total plans completed: 10 (Phase 1: 3, Phase 2: 3, Phase 3: 2, Phase 4: 2)
 - Average duration: ~8 min
 - Total execution time: —
 
@@ -67,7 +68,7 @@ This will execute Phase 4 Plan 02 (wire quoteService into webhook pipeline).
 | 1. Infrastructure | 3/3 | Code complete (pending credentials) |
 | 2. Core Pipeline | 3/3 | Code complete |
 | 3. Insurance Q&A and Handoff | 2/2 | Code complete |
-| 4. Quote Flow (Health Insurance) | 1/2 | In progress |
+| 4. Quote Flow (Health Insurance) | 2/2 | Code complete |
 | 5. Polish and Demo Hardening | 0/TBD | Not started |
 
 ## Accumulated Context
@@ -104,6 +105,9 @@ This will execute Phase 4 Plan 02 (wire quoteService into webhook pipeline).
 - [04-01]: resolveCity and resolvePlanType are pure (no GPT) — alias map sufficient for fixed city set
 - [04-01]: handleConfirmStep preserves collected data on field-specific correction (no full restart)
 - [04-01]: Prisma JSONB cast via Prisma.InputJsonObject from generated/prisma/client
+- [Phase 04-02]: Active QuoteState check (collecting/confirming) precedes intent check — mid-flow messages without quote keywords correctly route to quote branch
+- [Phase 04-02]: New quote intent always passes null state to handleQuoteMessage — forces fresh session (CONTEXT: nova cotacao substitui a anterior)
+- [Phase 04-02]: saveMessage(user) inside quote branch before handleQuoteMessage — maintains save-before-process invariant on short-circuit path
 
 ### Blockers/Concerns
 
@@ -112,5 +116,5 @@ This will execute Phase 4 Plan 02 (wire quoteService into webhook pipeline).
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 04-01-PLAN.md — QuoteState types, mock data, complete state machine built, 2/2 tasks done
-Resume file: .planning/phases/04-quote-flow-health-insurance/04-01-SUMMARY.md
+Stopped at: Completed 04-02-PLAN.md — webhook quote branch wired, ai.ts prompt updated, Phase 4 code-complete, 1/1 tasks done
+Resume file: .planning/phases/04-quote-flow-health-insurance/04-02-SUMMARY.md
