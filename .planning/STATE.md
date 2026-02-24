@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Liberar o corretor de seguros da operação repetitiva para que ele gaste mais tempo vendendo
-**Current focus:** Phase 3 complete — Phase 4 (Quote Flow) next
+**Current focus:** Phase 4 in progress — Quote flow state machine built, Plan 02 (webhook wiring) next
 
 ## Current Position
 
-Phase: 3 of 5 (Insurance Q&A and Handoff) — COMPLETE
-Plan: 2 of 2 in current phase
-Status: Phase 3 complete. Insurance knowledge layer + human handoff + admin commands all wired. Phase 4 (Quote Flow — Health Insurance) next.
-Last activity: 2026-02-24 — Phase 3 plan 02 executed (handoff logic and admin commands)
+Phase: 4 of 5 (Quote Flow — Health Insurance) — IN PROGRESS
+Plan: 1 of 2 in current phase — COMPLETE
+Status: Phase 4 Plan 01 complete. QuoteState types, mock data, and complete state machine built. Plan 02 (webhook wiring) next.
+Last activity: 2026-02-24 — Phase 4 plan 01 executed (types, mock data, quoteService state machine)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 60%
 
 ## Resume Instructions
 
-Phase 3 complete. Continue with Phase 4:
+Phase 4 Plan 01 complete. Continue with Plan 02:
 ```
 /gsd:execute-phase 4
 ```
-This will execute Phase 4 (Quote Flow — Health Insurance).
+This will execute Phase 4 Plan 02 (wire quoteService into webhook pipeline).
 
 ## What's Done (Phase 1)
 
@@ -41,6 +41,10 @@ This will execute Phase 4 (Quote Flow — Health Insurance).
 - Plan 03-01: Insurance facts layer — 5 product types with curated facts, detectProductType, dynamic system prompt injection (KNOW-01 through KNOW-04)
 - Plan 03-02: Human handoff and admin commands — setHumanMode, handoff service (buildHandoffBriefing + executeHandoff), admin service (isAdminPhone, isAdminCommand, handleAdminCommand), webhook pipeline rewired (HAND-01, HAND-02, HAND-03)
 
+## What's Done (Phase 4)
+
+- Plan 04-01: QuoteState/QuoteStep types, HealthQuotePlan mock data, complete quoteService.ts state machine (handleQuoteMessage, getQuoteState, 4 step handlers, GPT extraction, retry logic, quote output builder)
+
 ## What's Pending (Before Phase 1 is "complete")
 
 1. User creates Supabase project → copies DATABASE_URL and DIRECT_URL to .env
@@ -52,7 +56,7 @@ This will execute Phase 4 (Quote Flow — Health Insurance).
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8 (Phase 1: 3, Phase 2: 3, Phase 3: 2)
+- Total plans completed: 9 (Phase 1: 3, Phase 2: 3, Phase 3: 2, Phase 4: 1)
 - Average duration: ~8 min
 - Total execution time: —
 
@@ -63,7 +67,7 @@ This will execute Phase 4 (Quote Flow — Health Insurance).
 | 1. Infrastructure | 3/3 | Code complete (pending credentials) |
 | 2. Core Pipeline | 3/3 | Code complete |
 | 3. Insurance Q&A and Handoff | 2/2 | Code complete |
-| 4. Quote Flow (Health Insurance) | 0/TBD | Not started |
+| 4. Quote Flow (Health Insurance) | 1/2 | In progress |
 | 5. Polish and Demo Hardening | 0/TBD | Not started |
 
 ## Accumulated Context
@@ -96,6 +100,10 @@ This will execute Phase 4 (Quote Flow — Health Insurance).
 - [03-02]: buildHandoffBriefing is pure (no DB, no GPT) — deterministic and independently testable
 - [03-02]: executeHandoff sends briefing BEFORE setHumanMode(true) — bot speaks last words before going silent
 - [03-02]: isAdminCommand returns false for /humano — handoff must flow through intent pipeline
+- [04-01]: GPT as slow-path fallback after regex fast-path for lives and age_range extraction
+- [04-01]: resolveCity and resolvePlanType are pure (no GPT) — alias map sufficient for fixed city set
+- [04-01]: handleConfirmStep preserves collected data on field-specific correction (no full restart)
+- [04-01]: Prisma JSONB cast via Prisma.InputJsonObject from generated/prisma/client
 
 ### Blockers/Concerns
 
@@ -104,5 +112,5 @@ This will execute Phase 4 (Quote Flow — Health Insurance).
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 03-02-PLAN.md — human handoff + admin commands wired, 2/2 tasks done, Phase 3 complete
-Resume file: .planning/phases/03-insurance-qa-handoff/03-02-SUMMARY.md
+Stopped at: Completed 04-01-PLAN.md — QuoteState types, mock data, complete state machine built, 2/2 tasks done
+Resume file: .planning/phases/04-quote-flow-health-insurance/04-01-SUMMARY.md

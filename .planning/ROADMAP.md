@@ -109,5 +109,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Infrastructure | 3/3 | Code complete | 2026-02-24 |
 | 2. Core Pipeline | 3/3 | Code complete | 2026-02-24 |
 | 3. Insurance Q&A and Handoff | 2/2 | Code complete | 2026-02-24 |
-| 4. Quote Flow (Health Insurance) | 0/2 | Planned | - |
+| 4. Quote Flow (Health Insurance) | 1/2 | In Progress|  |
 | 5. Polish and Demo Hardening | 0/TBD | Not started | - |

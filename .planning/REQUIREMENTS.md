@@ -24,10 +24,10 @@ Requirements for demo release targeting assessoria with 50+ brokers.
 
 ### Quote Flow
 
-- [ ] **QUOT-01**: Bot conduz fluxo de cotação guiado para seguro saúde (coleta dados, valida, retorna preço mockado)
-- [ ] **QUOT-02**: Bot detecta automaticamente o tipo de seguro a partir de texto livre do corretor
-- [ ] **QUOT-03**: Bot apresenta resumo da cotação com coberturas, carências e preço
-- [ ] **QUOT-04**: Bot salva cotação parcial e retoma de onde parou quando corretor volta
+- [x] **QUOT-01**: Bot conduz fluxo de cotação guiado para seguro saúde (coleta dados, valida, retorna preço mockado)
+- [x] **QUOT-02**: Bot detecta automaticamente o tipo de seguro a partir de texto livre do corretor
+- [x] **QUOT-03**: Bot apresenta resumo da cotação com coberturas, carências e preço
+- [x] **QUOT-04**: Bot salva cotação parcial e retoma de onde parou quando corretor volta
 
 ### Handoff & Admin
 
@@ -93,10 +93,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KNOW-02 | Phase 3 | Complete |
 | KNOW-03 | Phase 3 | Complete |
 | KNOW-04 | Phase 3 | Complete |
-| QUOT-01 | Phase 4 | Pending |
-| QUOT-02 | Phase 4 | Pending |
-| QUOT-03 | Phase 4 | Pending |
-| QUOT-04 | Phase 4 | Pending |
+| QUOT-01 | Phase 4 | Complete |
+| QUOT-02 | Phase 4 | Complete |
+| QUOT-03 | Phase 4 | Complete |
+| QUOT-04 | Phase 4 | Complete |
 | HAND-01 | Phase 3 | Complete |
 | HAND-02 | Phase 3 | Complete |
 | HAND-03 | Phase 3 | Complete |
