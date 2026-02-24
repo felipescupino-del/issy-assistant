@@ -1,8 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// prisma/schema.prisma
+// Model names: English (PascalCase)
+// Table/column names: Portuguese (snake_case) via @@map / @map
 
 generator client {
   provider = "prisma-client"
@@ -11,4 +9,48 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ─── Contact ──────────────────────────────────────────────────────────────
+// Represents a WhatsApp user (broker). Identified by phone number.
+model Contact {
+  id        Int       @id @default(autoincrement())
+  phone     String    @unique @map("telefone")
+  name      String    @default("Desconhecido") @map("nome")
+  createdAt DateTime  @default(now()) @map("criado_em")
+  updatedAt DateTime  @updatedAt @map("atualizado_em")
+
+  messages  Message[]
+
+  @@map("contatos")
+}
+
+// ─── Conversation ─────────────────────────────────────────────────────────
+// One row per phone number. Tracks human-mode flag and quote flow state (JSONB).
+// Quote flow state (campo `estado`) stores the current quote collection progress as JSON.
+model Conversation {
+  id        Int      @id @default(autoincrement())
+  phone     String   @unique @map("telefone")
+  humanMode Boolean  @default(false) @map("modo_humano")
+  state     Json?    @map("estado")
+  updatedAt DateTime @updatedAt @map("atualizado_em")
+
+  @@map("conversas")
+}
+
+// ─── Message ──────────────────────────────────────────────────────────────
+// Full message history. Role is "user" (broker) or "assistant" (bot).
+// All messages are stored; LLM receives only the last N (HISTORY_LIMIT env var).
+model Message {
+  id        Int      @id @default(autoincrement())
+  phone     String   @map("telefone")
+  role      String   @map("papel")
+  content   String   @map("conteudo")
+  createdAt DateTime @default(now()) @map("criado_em")
+
+  contact   Contact  @relation(fields: [phone], references: [phone])
+
+  @@index([phone], name: "idx_mensagens_telefone")
+  @@index([createdAt], name: "idx_mensagens_criado_em")
+  @@map("mensagens")
 }
