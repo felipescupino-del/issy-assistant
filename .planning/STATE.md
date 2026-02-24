@@ -5,16 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Liberar o corretor de seguros da operação repetitiva para que ele gaste mais tempo vendendo
-**Current focus:** Phase 2 execution — Core Pipeline
+**Current focus:** Phase 3 — Insurance Q&A and Handoff
 
 ## Current Position
 
-Phase: 2 of 5 (Core Pipeline) — IN PROGRESS
-Plan: 3 of TBD in current phase
-Status: Phase 2 plan 03 complete. Full webhook pipeline wired (CORE-01 code-complete). Task 2 human-verify deferred pending credentials.
-Last activity: 2026-02-24 — 02-03 executed (webhook pipeline orchestration)
+Phase: 3 of 5 (Insurance Q&A and Handoff) — READY TO PLAN
+Plan: 0 of TBD in current phase
+Status: Phase 2 code complete (3/3 plans). Phase 3 research failed (context limit). Need to re-research and plan.
+Last activity: 2026-02-24 — Phase 2 all plans executed, Phase 3 research attempted
 
-Progress: [███░░░░░░░] 24%
+Progress: [████░░░░░░] 40%
+
+## Resume Instructions
+
+Phase 3 directory created but empty. Resume with:
+```
+/gsd:plan-phase 3
+```
+This will re-run research, then plan, then verify.
 
 ## What's Done (Phase 1)
 
