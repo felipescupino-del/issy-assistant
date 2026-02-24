@@ -58,7 +58,7 @@ export async function generateResponse(
  */
 function buildSystemPrompt(contactName: string, intent: Intent, productType: ProductType | null): string {
   const intentContext = intent === 'quote'
-    ? 'O corretor está interessado em fazer uma cotação. Colete informações necessárias e informe que o fluxo completo de cotação estará disponível em breve.'
+    ? 'O corretor quer fazer uma cotação. O fluxo de cotação já foi iniciado automaticamente — não repita instruções de cotação aqui.'
     : intent === 'handoff'
     ? 'O corretor quer falar com um humano. Confirme que você vai transferir a conversa.'
     : intent === 'greeting'

@@ -1,5 +1,5 @@
 // src/routes/webhook.ts
-// Phase 3: Full message pipeline with insurance knowledge layer, human handoff, and admin commands
+// Phase 4: Full message pipeline with insurance knowledge layer, human handoff, admin commands, and quote flow routing
 
 import { Router } from 'express';
 import { parseZApiPayload, ZApiWebhookPayload } from '../types/zapi';
@@ -12,6 +12,7 @@ import { sendTextMessage, computeDelaySeconds } from '../services/whatsapp';
 import { detectProductType } from '../data/insuranceFacts';
 import { isAdminCommand, isAdminPhone, handleAdminCommand } from '../services/admin';
 import { executeHandoff } from '../services/handoff';
+import { handleQuoteMessage, getQuoteState } from '../services/quoteService';
 
 const router = Router();
 
@@ -71,25 +72,41 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
     return;  // pipeline ends — bot is now in human mode
   }
 
-  // Step 6: Load history BEFORE saving current user message — prevents doubling (CORE-04)
+  // Step 6: Read active quote session (QUOT-04)
+  const quoteState = await getQuoteState(phone);
+
+  // Step 7: Route to quote flow if active session OR new quote intent (QUOT-01, QUOT-02, QUOT-04)
+  // CRITICAL: Active session check comes FIRST — mid-flow messages won't have quote keywords.
+  // Research pitfall #1: "Sao Paulo" mid-flow must route to quote, not Q&A.
+  if (quoteState?.status === 'collecting' || quoteState?.status === 'confirming' || intent === 'quote') {
+    // Save user message BEFORE processing (project invariant — prevents history gaps; Research pitfall #4)
+    await saveMessage(phone, 'user', text);
+    // If new quote intent arrives while collecting/confirming, reset session (CONTEXT: "nova cotacao substitui")
+    const stateToPass = intent === 'quote' ? null : quoteState;
+    await handleQuoteMessage(phone, text, stateToPass);
+    console.log(`[webhook] Quote flow for ${phone} (step=${quoteState?.currentStep ?? 'new'}, intent=${intent})`);
+    return;  // short-circuit — do NOT fall through to AI response
+  }
+
+  // Step 8: Load history BEFORE saving current user message — prevents doubling (CORE-04)
   const history = await loadHistory(phone);
 
-  // Step 7: Save the incoming user message
+  // Step 9: Save the incoming user message
   await saveMessage(phone, 'user', text);
 
-  // Step 8: Detect product type for facts injection (KNOW-01)
+  // Step 10: Detect product type for facts injection (KNOW-01)
   const productType = detectProductType(text);
 
-  // Step 9: Generate AI response (CORE-05 — fallback handled inside generateResponse)
+  // Step 11: Generate AI response (CORE-05 — fallback handled inside generateResponse)
   const nameToUse = firstMsg ? senderName : contact.name;
   const responseText = await generateResponse(nameToUse, history, text, intent, productType);
 
-  // Step 10: Send response with typing indicator (UX-01)
+  // Step 12: Send response with typing indicator (UX-01)
   // computeDelaySeconds() returns a random int between HUMAN_DELAY_MIN_MS/1000 and HUMAN_DELAY_MAX_MS/1000
   const delaySeconds = computeDelaySeconds();
   await sendTextMessage(phone, responseText, delaySeconds);
 
-  // Step 11: Save assistant response AFTER send succeeds — no phantom messages in history
+  // Step 13: Save assistant response AFTER send succeeds — no phantom messages in history
   await saveMessage(phone, 'assistant', responseText);
 
   console.log(`[webhook] Responded to ${phone} (intent=${intent}, product=${productType ?? 'none'}, delay=${delaySeconds}s, firstMsg=${firstMsg})`);
