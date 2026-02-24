@@ -79,9 +79,11 @@ Plans:
   3. Broker provides an invalid field value and bot explains the problem and asks again without losing previously collected data
   4. Bot presents a final quote summary with plan name, coverages, carência periods, and a mocked monthly price in a readable WhatsApp-formatted message
   5. Broker stops mid-quote and returns later; bot resumes the flow from the last completed step without restarting from the beginning
-**Plans**: TBD
+**Plans**: 2 plans
 
-Plans: TBD
+Plans:
+- [ ] 04-01-PLAN.md — QuoteState types, mock health plan data, and complete quoteService state machine
+- [ ] 04-02-PLAN.md — Wire quote branch into webhook pipeline and update AI quote prompt
 
 ### Phase 5: Polish and Demo Hardening
 **Goal**: The system handles concurrent broker messages without errors, is protected against duplicate processing and webhook abuse, and presents a professional UX that will not embarrass during the demo
@@ -107,5 +109,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Infrastructure | 3/3 | Code complete | 2026-02-24 |
 | 2. Core Pipeline | 3/3 | Code complete | 2026-02-24 |
 | 3. Insurance Q&A and Handoff | 2/2 | Code complete | 2026-02-24 |
-| 4. Quote Flow (Health Insurance) | 0/TBD | Not started | - |
+| 4. Quote Flow (Health Insurance) | 0/2 | Planned | - |
 | 5. Polish and Demo Hardening | 0/TBD | Not started | - |
