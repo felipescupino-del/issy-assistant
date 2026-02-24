@@ -54,6 +54,7 @@ Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 | 3. Insurance Q&A and Handoff | 0/TBD | Not started |
 | 4. Quote Flow (Health Insurance) | 0/TBD | Not started |
 | 5. Polish and Demo Hardening | 0/TBD | Not started |
+| Phase 02-core-pipeline P02 | 82 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 - [Init]: Quote flow v1 foca em saúde (QUOT-01) — não auto
 - [02-01]: isFirstMessage usa comparação numérica getTime() (<1000ms), não === (evita bug de referência Date)
 - [02-01]: getOrCreateConversation usa update:{} (no-op) para preservar humanMode e estado da cotação
+- [Phase 02-core-pipeline]: desc+reverse LIMIT pattern for chronological LLM history without subquery
+- [Phase 02-core-pipeline]: HANDOFF_KEYWORDS before QUOTE_KEYWORDS to prevent false intent routing
+- [Phase 02-core-pipeline]: axios timeout 20_000ms for Z-API delayTyping (was 10_000, caused ETIMEDOUT)
 
 ### Blockers/Concerns
 
