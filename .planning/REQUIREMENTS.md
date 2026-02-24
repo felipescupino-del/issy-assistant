@@ -84,29 +84,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | — | Pending |
-| CORE-02 | — | Pending |
-| CORE-03 | — | Pending |
-| CORE-04 | — | Pending |
-| CORE-05 | — | Pending |
-| KNOW-01 | — | Pending |
-| KNOW-02 | — | Pending |
-| KNOW-03 | — | Pending |
-| KNOW-04 | — | Pending |
-| QUOT-01 | — | Pending |
-| QUOT-02 | — | Pending |
-| QUOT-03 | — | Pending |
-| QUOT-04 | — | Pending |
-| HAND-01 | — | Pending |
-| HAND-02 | — | Pending |
-| HAND-03 | — | Pending |
-| UX-01 | — | Pending |
+| CORE-01 | Phase 2 | Pending |
+| CORE-02 | Phase 2 | Pending |
+| CORE-03 | Phase 2 | Pending |
+| CORE-04 | Phase 2 | Pending |
+| CORE-05 | Phase 2 | Pending |
+| KNOW-01 | Phase 3 | Pending |
+| KNOW-02 | Phase 3 | Pending |
+| KNOW-03 | Phase 3 | Pending |
+| KNOW-04 | Phase 3 | Pending |
+| QUOT-01 | Phase 4 | Pending |
+| QUOT-02 | Phase 4 | Pending |
+| QUOT-03 | Phase 4 | Pending |
+| QUOT-04 | Phase 4 | Pending |
+| HAND-01 | Phase 3 | Pending |
+| HAND-02 | Phase 3 | Pending |
+| HAND-03 | Phase 3 | Pending |
+| UX-01 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-24*
-*Last updated: 2026-02-24 after initial definition*
+*Last updated: 2026-02-24 after roadmap creation — traceability complete*
