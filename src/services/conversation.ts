@@ -21,3 +21,14 @@ export async function getOrCreateConversation(phone: string) {
 export function isHumanMode(conversation: { humanMode: boolean }): boolean {
   return conversation.humanMode;
 }
+
+/**
+ * Set humanMode for a conversation. Used by handoff flow (true) and admin /bot command (false).
+ * Uses update (not upsert) because getOrCreateConversation always runs first in the pipeline.
+ */
+export async function setHumanMode(phone: string, mode: boolean): Promise<void> {
+  await prisma.conversation.update({
+    where: { phone },
+    data: { humanMode: mode },
+  });
+}
