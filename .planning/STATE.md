@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 2 of 5 (Core Pipeline) — IN PROGRESS
-Plan: 1 of TBD in current phase
-Status: Phase 2 plan 01 complete. Contact + conversation services written.
-Last activity: 2026-02-24 — 02-01 executed (contact/conversation persistence services)
+Plan: 3 of TBD in current phase
+Status: Phase 2 plan 03 complete. Full webhook pipeline wired (CORE-01 code-complete). Task 2 human-verify deferred pending credentials.
+Last activity: 2026-02-24 — 02-03 executed (webhook pipeline orchestration)
 
 Progress: [███░░░░░░░] 24%
 
@@ -25,6 +25,8 @@ Progress: [███░░░░░░░] 24%
 ## What's Done (Phase 2)
 
 - Plan 02-01: ConversationContext type, upsertContact/isFirstMessage, getOrCreateConversation/isHumanMode services
+- Plan 02-02: history/intent/ai/whatsapp services — loadHistory, saveMessage, classifyIntent, generateResponse, sendTextMessage
+- Plan 02-03: webhook.ts pipeline wired — 8-step processMessage() connecting all Phase 2 services (CORE-01 code-complete)
 
 ## What's Pending (Before Phase 1 is "complete")
 
@@ -75,6 +77,8 @@ Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 - [Phase 02-core-pipeline]: desc+reverse LIMIT pattern for chronological LLM history without subquery
 - [Phase 02-core-pipeline]: HANDOFF_KEYWORDS before QUOTE_KEYWORDS to prevent false intent routing
 - [Phase 02-core-pipeline]: axios timeout 20_000ms for Z-API delayTyping (was 10_000, caused ETIMEDOUT)
+- [02-03]: loadHistory before saveMessage(user) prevents current message doubling in LLM context
+- [02-03]: saveMessage(assistant) after sendTextMessage prevents phantom messages on send failure
 
 ### Blockers/Concerns
 
@@ -84,5 +88,5 @@ Phase 2 plan 01 complete. Continue with next plan in Phase 2.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 02-01-PLAN.md — contact and conversation persistence services
-Resume file: .planning/phases/02-core-pipeline/02-01-SUMMARY.md
+Stopped at: Completed 02-03-PLAN.md — webhook pipeline wired, Task 2 human-verify deferred pending credentials
+Resume file: .planning/phases/02-core-pipeline/02-03-SUMMARY.md
