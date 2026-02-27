@@ -40,7 +40,7 @@ export async function handleAdminCommand(phone: string, text: string): Promise<v
 
   if (normalized === '/bot') {
     await setHumanMode(phone, false);
-    await sendTextMessage(phone, 'Bot mode restaurado. Issy voltou a responder neste chat.', 0);
+    await sendTextMessage(phone, 'Bot mode restaurado. Luna voltou a responder neste chat.', 0);
     console.log(`[admin] /bot executed by ${phone}`);
     return;
   }
