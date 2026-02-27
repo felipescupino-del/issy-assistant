@@ -102,8 +102,10 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   const productType = detectProductType(text);
 
   // Step 13: Generate AI response
+  // Expand menu numbers into meaningful text so the AI understands context
+  const aiText = expandMenuNumber(text) ?? text;
   const nameToUse = firstMsg ? senderName : contact.name;
-  const rawResponse = await generateResponse(nameToUse, history, text, intent, productType, {
+  const rawResponse = await generateResponse(nameToUse, history, aiText, intent, productType, {
     isNewSession: sessionExpired,
   });
 
@@ -126,6 +128,18 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   }
 
   console.log(`[webhook] Responded to ${phone} (intent=${intent}, product=${productType ?? 'none'}, delay=${delaySeconds}s)`);
+}
+
+/**
+ * Expand menu number into meaningful text so the AI understands what the broker wants.
+ * Returns null if the text is not a menu number.
+ */
+function expandMenuNumber(text: string): string | null {
+  const trimmed = text.trim();
+  if (trimmed === '1') return 'Quero tirar dúvidas sobre seguros';
+  if (trimmed === '2') return 'Quero fazer uma cotação';
+  if (trimmed === '3') return 'Quero falar com um atendente';
+  return null;
 }
 
 export default router;
