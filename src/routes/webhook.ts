@@ -1,10 +1,10 @@
 // src/routes/webhook.ts
-// Phase 4: Full message pipeline with insurance knowledge layer, human handoff, admin commands, and quote flow routing
+// Full message pipeline — Luna / Grupo Futura União
 
 import { Router } from 'express';
 import { parseZApiPayload, ZApiWebhookPayload } from '../types/zapi';
 import { upsertContact, isFirstMessage } from '../services/contact';
-import { getOrCreateConversation, isHumanMode } from '../services/conversation';
+import { getOrCreateConversation, isHumanMode, isSessionExpired, touchConversation } from '../services/conversation';
 import { loadHistory, saveMessage } from '../services/history';
 import { classifyIntent } from '../services/intent';
 import { generateResponse } from '../services/ai';
@@ -13,6 +13,8 @@ import { detectProductType } from '../data/insuranceFacts';
 import { isAdminCommand, isAdminPhone, handleAdminCommand } from '../services/admin';
 import { executeHandoff } from '../services/handoff';
 import { handleQuoteMessage, getQuoteState } from '../services/quoteService';
+import { parseResponseMarkers } from '../services/responseParser';
+import { WELCOME_MESSAGE } from '../data/welcomeMessage';
 
 const router = Router();
 
@@ -30,86 +32,100 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   const parsed = parseZApiPayload(body);
 
   // Guard: ignore non-text messages (image, audio, sticker, etc.)
-  // parsed is null for fromMe/group (handled in parseZApiPayload)
   if (!parsed || !parsed.text) return;
 
   const { phone, text, senderName } = parsed;
 
-  // Step 1: Persist contact — upsert by phone, sync senderName (CORE-02)
+  // Step 1: Persist contact — upsert by phone, sync senderName
   const contact = await upsertContact(phone, senderName);
   const firstMsg = isFirstMessage(contact);
 
-  // Step 2: Classify intent (CORE-03)
-  // Must run BEFORE admin check to allow /humano to flow through normal pipeline.
-  // Must run BEFORE humanMode gate so handoff intent is captured even if broker re-sends /humano.
+  // Step 2: Classify intent (supports menu numbers 1/2/3 and keywords)
   const intent = classifyIntent(text);
 
-  // Step 3: Admin command check — BEFORE human mode gate (HAND-03)
-  // /bot must work even when humanMode=true (otherwise deadlock — can't restore bot).
-  // Only /bot and /status are admin commands. /humano flows through normal intent pipeline.
+  // Step 3: Admin command check — BEFORE human mode gate
   if (isAdminCommand(text)) {
     if (isAdminPhone(phone)) {
       await handleAdminCommand(phone, text);
     }
-    // Non-admin sending /bot or /status: silently ignore (no response, no processing)
     return;
   }
 
-  // Step 4: Human mode gate — check BEFORE any OpenAI call (CORE-04)
-  // If humanMode is true, a human agent has taken over. Do not respond.
+  // Step 4: Get conversation + human mode gate
   const conversation = await getOrCreateConversation(phone);
   if (isHumanMode(conversation)) {
     console.log(`[webhook] Human mode active for ${phone} — skipping bot response`);
     return;
   }
 
-  // Step 5: Handoff branch — exit pipeline, bot goes silent (HAND-01, HAND-02)
-  // Runs after humanMode gate: a second /humano while already in human mode is silenced at Step 4.
-  if (intent === 'handoff') {
-    const handoffHistory = await loadHistory(phone);
-    await saveMessage(phone, 'user', text);  // save the /humano message before handoff
-    await executeHandoff(phone, contact, handoffHistory);
-    return;  // pipeline ends — bot is now in human mode
+  // Step 5: Touch session timestamp (keep session alive)
+  await touchConversation(phone);
+
+  // Step 6: Welcome flow — send menu after 30min inactivity or first message
+  const sessionExpired = isSessionExpired(conversation);
+  if ((firstMsg || sessionExpired) && intent !== 'handoff') {
+    await sendTextMessage(phone, WELCOME_MESSAGE, 1);
+    await saveMessage(phone, 'assistant', WELCOME_MESSAGE);
+    console.log(`[webhook] Welcome sent to ${phone} (firstMsg=${firstMsg}, sessionExpired=${sessionExpired})`);
+    // Don't return — continue processing the user's actual message below
+    // Unless the message was just a greeting, in which case the welcome is enough
+    if (intent === 'greeting' || intent === 'unknown') return;
   }
 
-  // Step 6: Read active quote session (QUOT-04)
+  // Step 7: Handoff branch — exit pipeline, bot goes silent
+  if (intent === 'handoff') {
+    const handoffHistory = await loadHistory(phone);
+    await saveMessage(phone, 'user', text);
+    await executeHandoff(phone, contact, handoffHistory);
+    return;
+  }
+
+  // Step 8: Read active quote session
   const quoteState = await getQuoteState(phone);
 
-  // Step 7: Route to quote flow if active session OR new quote intent (QUOT-01, QUOT-02, QUOT-04)
-  // CRITICAL: Active session check comes FIRST — mid-flow messages won't have quote keywords.
-  // Research pitfall #1: "Sao Paulo" mid-flow must route to quote, not Q&A.
+  // Step 9: Route to quote flow if active session OR new quote intent
   if (quoteState?.status === 'collecting' || quoteState?.status === 'confirming' || intent === 'quote') {
-    // Save user message BEFORE processing (project invariant — prevents history gaps; Research pitfall #4)
     await saveMessage(phone, 'user', text);
-    // If new quote intent arrives while collecting/confirming, reset session (CONTEXT: "nova cotacao substitui")
     const stateToPass = intent === 'quote' ? null : quoteState;
     await handleQuoteMessage(phone, text, stateToPass);
     console.log(`[webhook] Quote flow for ${phone} (step=${quoteState?.currentStep ?? 'new'}, intent=${intent})`);
-    return;  // short-circuit — do NOT fall through to AI response
+    return;
   }
 
-  // Step 8: Load history BEFORE saving current user message — prevents doubling (CORE-04)
+  // Step 10: Load history BEFORE saving current user message — prevents doubling
   const history = await loadHistory(phone);
 
-  // Step 9: Save the incoming user message
+  // Step 11: Save the incoming user message
   await saveMessage(phone, 'user', text);
 
-  // Step 10: Detect product type for facts injection (KNOW-01)
+  // Step 12: Detect product type for facts injection
   const productType = detectProductType(text);
 
-  // Step 11: Generate AI response (CORE-05 — fallback handled inside generateResponse)
+  // Step 13: Generate AI response
   const nameToUse = firstMsg ? senderName : contact.name;
-  const responseText = await generateResponse(nameToUse, history, text, intent, productType);
+  const rawResponse = await generateResponse(nameToUse, history, text, intent, productType, {
+    isNewSession: sessionExpired,
+  });
 
-  // Step 12: Send response with typing indicator (UX-01)
-  // computeDelaySeconds() returns a random int between HUMAN_DELAY_MIN_MS/1000 and HUMAN_DELAY_MAX_MS/1000
+  // Step 14: Parse response markers ([TRANSFER], [QUOTATION_COMPLETE])
+  const { cleanText, shouldTransfer } = parseResponseMarkers(rawResponse);
+
+  // Step 15: Send response with typing indicator
   const delaySeconds = computeDelaySeconds();
-  await sendTextMessage(phone, responseText, delaySeconds);
+  await sendTextMessage(phone, cleanText, delaySeconds);
 
-  // Step 13: Save assistant response AFTER send succeeds — no phantom messages in history
-  await saveMessage(phone, 'assistant', responseText);
+  // Step 16: Save assistant response AFTER send succeeds
+  await saveMessage(phone, 'assistant', cleanText);
 
-  console.log(`[webhook] Responded to ${phone} (intent=${intent}, product=${productType ?? 'none'}, delay=${delaySeconds}s, firstMsg=${firstMsg})`);
+  // Step 17: If AI flagged transfer, execute handoff after sending response
+  if (shouldTransfer) {
+    const handoffHistory = await loadHistory(phone);
+    await executeHandoff(phone, contact, handoffHistory);
+    console.log(`[webhook] AI-triggered transfer for ${phone}`);
+    return;
+  }
+
+  console.log(`[webhook] Responded to ${phone} (intent=${intent}, product=${productType ?? 'none'}, delay=${delaySeconds}s)`);
 }
 
 export default router;
