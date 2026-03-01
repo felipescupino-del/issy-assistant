@@ -15,6 +15,7 @@ import { executeHandoff } from '../services/handoff';
 import { handleQuoteMessage, getQuoteState } from '../services/quoteService';
 import { parseResponseMarkers } from '../services/responseParser';
 import { WELCOME_MESSAGE } from '../data/welcomeMessage';
+import { config } from '../config';
 
 const router = Router();
 
@@ -76,7 +77,7 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   if (intent === 'handoff') {
     const handoffHistory = await loadHistory(phone);
     await saveMessage(phone, 'user', text);
-    await executeHandoff(phone, contact, handoffHistory);
+    await executeHandoff(phone, contact, handoffHistory, config.admin.phoneNumbers[0]);
     return;
   }
 
@@ -122,7 +123,7 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   // Step 17: If AI flagged transfer, execute handoff after sending response
   if (shouldTransfer) {
     const handoffHistory = await loadHistory(phone);
-    await executeHandoff(phone, contact, handoffHistory);
+    await executeHandoff(phone, contact, handoffHistory, config.admin.phoneNumbers[0]);
     console.log(`[webhook] AI-triggered transfer for ${phone}`);
     return;
   }
