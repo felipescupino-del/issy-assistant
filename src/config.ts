@@ -2,13 +2,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 function required(key: string): string {
-  const value = process.env[key];
+  const value = process.env[key]?.trim();
   if (!value) throw new Error(`Variável de ambiente obrigatória ausente: ${key}`);
   return value;
 }
 
 function optional(key: string, defaultValue = ''): string {
-  return process.env[key] ?? defaultValue;
+  return process.env[key]?.trim() ?? defaultValue;
 }
 
 export const config = {
