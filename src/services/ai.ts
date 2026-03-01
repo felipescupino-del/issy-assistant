@@ -44,8 +44,15 @@ export async function generateResponse(
     });
 
     return completion.choices[0]?.message?.content ?? getFallbackMessage();
-  } catch (err) {
-    console.error('[ai] Erro ao chamar OpenAI:', err);
+  } catch (err: any) {
+    console.error('[ai] Erro ao chamar OpenAI:', {
+      message: err?.message,
+      status: err?.status,
+      code: err?.code,
+      type: err?.type,
+      model: config.openai.model,
+      keyPrefix: config.openai.apiKey?.slice(0, 10) + '...',
+    });
     return getFallbackMessage();
   }
 }
