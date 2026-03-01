@@ -84,9 +84,11 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   // Step 6: Welcome flow — send menu after 30min inactivity or first message
   const sessionExpired = isSessionExpired(conversation);
   if ((firstMsg || sessionExpired) && intent !== 'handoff') {
-    // Always send text (reliable), try buttons as bonus (WhatsApp may silently drop them)
-    await sendTextMessage(phone, WELCOME_MESSAGE, 1);
-    sendButtonListMessage(phone, WELCOME_BUTTON_TEXT, WELCOME_BUTTONS).catch(() => {});
+    // Send interactive buttons; fall back to plain text if API fails
+    const buttonsSent = await sendButtonListMessage(phone, WELCOME_BUTTON_TEXT, WELCOME_BUTTONS);
+    if (!buttonsSent) {
+      await sendTextMessage(phone, WELCOME_MESSAGE, 1);
+    }
     await saveMessage(phone, 'assistant', WELCOME_MESSAGE);
     console.log(`[webhook] Welcome sent to ${phone} (firstMsg=${firstMsg}, sessionExpired=${sessionExpired})`);
     // Don't return — continue processing the user's actual message below
