@@ -66,54 +66,72 @@ async function persistQuoteState(phone: string, state: QuoteState): Promise<void
 
 // ─── Step prompts ─────────────────────────────────────────────────────────────
 
-const STEP_PROMPTS: Record<QuoteStep, string> = {
-  lives:
-    '🏥 *Cotacao de Plano de Saude*\n\nOla! Vou te ajudar a montar uma cotacao rapidinho. 😊\n\nPrimeiro, *quantas vidas* (pessoas) serao incluidas no plano?\n\n_(Ex: 1, 3, 10)_',
-  age_range:
-    'Perfeito! Agora me diz a *faixa etaria* dos beneficiarios.\n\n_(Ex: 20-30, 35-45, 50-60)_',
-  city:
-    'Otimo! Qual a *cidade* para a cotacao?\n\nCidades disponiveis:\n• Sao Paulo\n• Rio de Janeiro\n• Belo Horizonte\n• Curitiba\n• Porto Alegre',
-  plan_type:
-    'Entendido! Qual o *tipo de acomodacao* desejado?\n\n1️⃣ *Enfermaria*\n2️⃣ *Apartamento*\n\n_(Responda com 1, 2 ou o nome)_',
-  confirm: '',  // built dynamically
-  done: '',     // built dynamically
+const STEP_VARIANTS: Record<QuoteStep, string[]> = {
+  lives: [
+    '🏥 *Cotacao de Plano de Saude*\n\nBora montar sua cotacao! 😊\n\nPra comecar, *quantas vidas* vao entrar no plano?\n\n_(Ex: 1, 3, 10)_',
+    '🏥 *Cotacao de Plano de Saude*\n\nVou te ajudar rapidinho! 😊\n\nMe diz: *quantas pessoas* serao incluidas?\n\n_(Ex: 2, 5, 10)_',
+    '🏥 *Cotacao de Plano de Saude*\n\nShow, vamos la! 😊\n\nPrimeiro: *quantas vidas* pra esse plano?\n\n_(Ex: 1, 4, 8)_',
+  ],
+  age_range: [
+    'Beleza! Agora me diz a *idade* ou *faixa etaria* dos beneficiarios.\n\n_(Ex: 35, 20-30, 50-60)_',
+    'Boa! Qual a *idade* do(s) beneficiario(s)?\n\n_(Pode mandar a idade tipo *35* ou a faixa *30-40*)_',
+    'Show! E qual a *faixa de idade*?\n\n_(Ex: 28 anos, 35-45, 50-60)_',
+  ],
+  city: [
+    'Tranquilo! Qual a *cidade* pra cotacao?\n\nTemos: SP, Rio, BH, Curitiba e Porto Alegre',
+    'Beleza! Em qual *cidade* seria o plano?\n\n• Sao Paulo\n• Rio de Janeiro\n• Belo Horizonte\n• Curitiba\n• Porto Alegre',
+    'Boa! Pra qual *cidade*?\n\nSP, Rio, BH, Curitiba ou Porto Alegre 📍',
+  ],
+  plan_type: [
+    'Quase la! Qual o *tipo de acomodacao*?\n\n1️⃣ *Enfermaria*\n2️⃣ *Apartamento*',
+    'E a acomodacao? *Enfermaria* ou *Apartamento*?\n\n_(Manda 1 ou 2)_',
+    'Ultimo dado! 🎉 *Enfermaria* (1) ou *Apartamento* (2)?',
+  ],
+  confirm: [],  // built dynamically
+  done: [],     // built dynamically
 };
+
+function getStepPrompt(step: QuoteStep): string {
+  const variants = STEP_VARIANTS[step];
+  if (!variants || variants.length === 0) return '';
+  return variants[Math.floor(Math.random() * variants.length)];
+}
 
 // ─── Retry messages ───────────────────────────────────────────────────────────
 
 function getRetryMessage(field: QuoteStep, attempt: number): string {
   const messages: Record<QuoteStep, string[]> = {
     lives: [
-      'Hmm, nao entendi bem. Quantas pessoas serao incluidas no plano? _(Ex: 2)_',
-      'Me diz somente o numero de vidas, por exemplo: *4*',
-      'Nao consegui identificar o numero de vidas. Quer pular essa pergunta e falar com um consultor?',
+      'Opa, nao peguei 😅 Manda so o numero de pessoas pro plano, tipo *3*',
+      'Nao entendi ainda — me diz so o numero de vidas, ex: *2*',
+      'Ta dificil captar o numero 😬 Quer falar com um consultor pra continuar?',
     ],
     age_range: [
-      'Nao entendi a faixa etaria. Qual a faixa de idade dos beneficiarios? _(Ex: 25-35)_',
-      'Me diz somente a faixa etaria no formato *XX-YY*, por exemplo: *30-40*',
-      'Tive dificuldade em identificar a faixa etaria. Quer pular e falar com um consultor?',
+      'Nao consegui pegar a idade 😅 Manda a idade tipo *35* ou a faixa *30-40*',
+      'Tenta mandar so a idade, ex: *28* ou a faixa *25-35*',
+      'Hmm, nao to conseguindo entender a faixa etaria. Quer falar com um consultor?',
     ],
     city: [
-      'Essa cidade nao esta disponivel para cotacao. As opcoes sao:\n• Sao Paulo\n• Rio de Janeiro\n• Belo Horizonte\n• Curitiba\n• Porto Alegre',
-      'Por favor, escolha uma das cidades listadas acima. Qual delas e mais proxima?',
-      'Nao consegui identificar a cidade. Quer pular e falar com um consultor?',
+      'Essa cidade ainda nao ta disponivel 😕 Temos: SP, Rio, BH, Curitiba e Porto Alegre',
+      'Qual dessas cidades fica mais perto? SP, Rio, BH, Curitiba ou POA',
+      'Nao achei a cidade 😬 Quer pular e falar com um consultor?',
     ],
     plan_type: [
-      'Nao entendi o tipo de acomodacao. Responda *1* para Enfermaria ou *2* para Apartamento.',
-      'Escolha somente *1* (Enfermaria) ou *2* (Apartamento).',
-      'Nao consegui identificar o tipo de plano. Quer pular e falar com um consultor?',
+      'Nao peguei! Manda *1* pra Enfermaria ou *2* pra Apartamento',
+      'So preciso saber: *enfermaria* ou *apartamento*? 😊',
+      'Nao consegui entender o tipo. Quer falar com um consultor?',
     ],
     confirm: [
-      'Nao entendi sua resposta. Responda *sim* para confirmar ou *nao* para corrigir os dados.',
-      'Por favor, responda somente *sim* ou *nao*.',
-      'Tive dificuldade em interpretar sua resposta. Quer falar com um consultor?',
+      'Nao entendi 😅 Manda *sim* pra confirmar ou *nao* pra corrigir',
+      'So preciso de um *sim* ou *nao* 😊',
+      'Hmm, nao to conseguindo interpretar. Quer falar com um consultor?',
     ],
     done: [],
   };
 
   const list = messages[field];
   const index = Math.min(attempt - 1, list.length - 1);
-  return list[index] ?? list[list.length - 1] ?? 'Nao entendi. Pode repetir?';
+  return list[index] ?? list[list.length - 1] ?? 'Nao entendi, pode repetir?';
 }
 
 // ─── Value extraction ─────────────────────────────────────────────────────────
@@ -157,16 +175,39 @@ async function extractLivesCount(text: string): Promise<number | null> {
   }
 }
 
+/**
+ * Converts a single age into the corresponding ANS age band string.
+ * Bands align with healthQuoteMock.ts ageMultipliers keys.
+ */
+function ageToAgeBand(age: number): string | null {
+  if (age < 0 || age > 120) return null;
+  const bands: [number, number, string][] = [
+    [0, 18, '0-18'],
+    [19, 23, '19-23'],
+    [24, 28, '24-28'],
+    [29, 33, '29-33'],
+    [34, 38, '34-38'],
+    [39, 43, '39-43'],
+    [44, 48, '44-48'],
+    [49, 53, '49-53'],
+    [54, 58, '54-58'],
+  ];
+  for (const [min, max, label] of bands) {
+    if (age >= min && age <= max) return label;
+  }
+  return '59+';
+}
+
 async function extractAgeRange(text: string): Promise<string | null> {
   // Fast path: explicit range patterns
-  const patterns = [
+  const rangePatterns = [
     /\b(\d{1,3})\s*[-–]\s*(\d{1,3})\b/,              // "20-30" or "20–30"
     /\b(\d{1,3})\s+a\s+(\d{1,3})\b/i,                 // "20 a 30"
     /entre\s+(\d{1,3})\s+e\s+(\d{1,3})\b/i,           // "entre 20 e 30"
     /de\s+(\d{1,3})\s+a\s+(\d{1,3})\b/i,              // "de 20 a 30"
   ];
 
-  for (const pattern of patterns) {
+  for (const pattern of rangePatterns) {
     const match = text.match(pattern);
     if (match) {
       const min = parseInt(match[1], 10);
@@ -177,6 +218,23 @@ async function extractAgeRange(text: string): Promise<string | null> {
     }
   }
 
+  // Fast path: single age patterns — "35 anos", "tenho 42", just "28"
+  const singleAgePatterns = [
+    /\btenho\s+(\d{1,3})\b/i,                          // "tenho 35"
+    /\b(\d{1,3})\s*anos?\b/i,                           // "35 anos" or "35 ano"
+    /\bidade\s*:?\s*(\d{1,3})\b/i,                      // "idade: 42" or "idade 42"
+    /^\s*(\d{1,3})\s*$/,                                 // just "28"
+  ];
+
+  for (const pattern of singleAgePatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const age = parseInt(match[1], 10);
+      const band = ageToAgeBand(age);
+      if (band) return band;
+    }
+  }
+
   // Slow path: GPT extraction
   try {
     const completion = await openai.chat.completions.create({
@@ -184,7 +242,11 @@ async function extractAgeRange(text: string): Promise<string | null> {
       messages: [
         {
           role: 'system',
-          content: 'Voce extrai faixa etaria de um texto em portugues. Responda APENAS no formato "XX-YY" (ex: "25-35") ou NENHUMA.',
+          content:
+            'Voce extrai faixa etaria ou idade de um texto em portugues. ' +
+            'Se for uma faixa, responda no formato "XX-YY" (ex: "25-35"). ' +
+            'Se for uma idade unica, responda apenas o numero (ex: "35"). ' +
+            'Se nao encontrar nenhuma idade, responda NENHUMA.',
         },
         { role: 'user', content: text },
       ],
@@ -193,12 +255,23 @@ async function extractAgeRange(text: string): Promise<string | null> {
     });
     const raw = completion.choices[0]?.message?.content?.trim() ?? '';
     if (raw === 'NENHUMA' || raw === '') return null;
+
+    // Try range format first
     const rangeMatch = raw.match(/^(\d{1,3})-(\d{1,3})$/);
     if (rangeMatch) {
       const min = parseInt(rangeMatch[1], 10);
       const max = parseInt(rangeMatch[2], 10);
       if (min >= 0 && max <= 120 && min < max) return `${min}-${max}`;
     }
+
+    // Try single age
+    const singleMatch = raw.match(/^(\d{1,3})$/);
+    if (singleMatch) {
+      const age = parseInt(singleMatch[1], 10);
+      const band = ageToAgeBand(age);
+      if (band) return band;
+    }
+
     return null;
   } catch (err) {
     console.error('[quoteService] GPT age range extraction error:', err);
@@ -208,19 +281,37 @@ async function extractAgeRange(text: string): Promise<string | null> {
 
 // City alias map — accent-stripped, lowercase -> canonical city name
 const CITY_ALIASES: Record<string, string> = {
-  'sp':             'Sao Paulo',
-  'sao paulo':      'Sao Paulo',
-  'sampa':          'Sao Paulo',
-  'rio':            'Rio de Janeiro',
-  'rj':             'Rio de Janeiro',
-  'rio de janeiro': 'Rio de Janeiro',
-  'bh':             'Belo Horizonte',
-  'belo horizonte': 'Belo Horizonte',
-  'cwb':            'Curitiba',
-  'curitiba':       'Curitiba',
-  'poa':            'Porto Alegre',
-  'porto alegre':   'Porto Alegre',
+  'sp':               'Sao Paulo',
+  'sp capital':       'Sao Paulo',
+  'sao paulo':        'Sao Paulo',
+  'sampa':            'Sao Paulo',
+  'são paulo':        'Sao Paulo',
+  'rio':              'Rio de Janeiro',
+  'rj':               'Rio de Janeiro',
+  'rio de janeiro':   'Rio de Janeiro',
+  'rio de janeiro rj':'Rio de Janeiro',
+  'bh':               'Belo Horizonte',
+  'belo horizonte':   'Belo Horizonte',
+  'beaga':            'Belo Horizonte',
+  'belzonte':         'Belo Horizonte',
+  'cwb':              'Curitiba',
+  'curitiba':         'Curitiba',
+  'ctba':             'Curitiba',
+  'poa':              'Porto Alegre',
+  'porto alegre':     'Porto Alegre',
+  'portoalegre':      'Porto Alegre',
 };
+
+// Substring keywords for each city — used when exact alias match fails
+const CITY_SUBSTRINGS: [string, string][] = [
+  ['paulo',       'Sao Paulo'],
+  ['sampa',       'Sao Paulo'],
+  ['janeiro',     'Rio de Janeiro'],
+  ['horizonte',   'Belo Horizonte'],
+  ['beaga',       'Belo Horizonte'],
+  ['curitiba',    'Curitiba'],
+  ['alegre',      'Porto Alegre'],
+];
 
 function normalizeText(input: string): string {
   return input.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -228,13 +319,30 @@ function normalizeText(input: string): string {
 
 function resolveCity(input: string): string | null {
   const normalized = normalizeText(input);
-  return CITY_ALIASES[normalized] ?? null;
+
+  // Exact alias match
+  const exact = CITY_ALIASES[normalized];
+  if (exact) return exact;
+
+  // Substring search — handles "moro em curitiba", "cidade: sp capital", etc.
+  for (const [keyword, city] of CITY_SUBSTRINGS) {
+    if (normalized.includes(keyword)) return city;
+  }
+
+  return null;
 }
 
 function resolvePlanType(input: string): 'enfermaria' | 'apartamento' | null {
   const lower = input.toLowerCase().trim();
-  if (lower === '1' || lower === 'enfermaria') return 'enfermaria';
-  if (lower === '2' || lower === 'apartamento' || lower === 'apto') return 'apartamento';
+
+  // Enfermaria matches
+  const enfTerms = ['1', 'enfermaria', 'enf', 'enfermeira'];
+  if (enfTerms.includes(lower) || lower.includes('enferm')) return 'enfermaria';
+
+  // Apartamento matches
+  const aptTerms = ['2', 'apartamento', 'apto', 'apart', 'apt'];
+  if (aptTerms.includes(lower) || lower.includes('aparta') || lower.includes('apart')) return 'apartamento';
+
   return null;
 }
 
@@ -316,7 +424,7 @@ async function handleLivesStep(phone: string, text: string, state: QuoteState): 
     state.currentStep = 'age_range';
     state.retryCount = 0;
     await persistQuoteState(phone, state);
-    const prompt = STEP_PROMPTS.age_range;
+    const prompt = getStepPrompt('age_range');
     await sendTextMessage(phone, prompt, computeDelaySeconds());
     await saveMessage(phone, 'assistant', prompt);
   } else {
@@ -336,7 +444,7 @@ async function handleAgeRangeStep(phone: string, text: string, state: QuoteState
     state.currentStep = 'city';
     state.retryCount = 0;
     await persistQuoteState(phone, state);
-    const prompt = STEP_PROMPTS.city;
+    const prompt = getStepPrompt('city');
     await sendTextMessage(phone, prompt, computeDelaySeconds());
     await saveMessage(phone, 'assistant', prompt);
   } else {
@@ -356,7 +464,7 @@ async function handleCityStep(phone: string, text: string, state: QuoteState): P
     state.currentStep = 'plan_type';
     state.retryCount = 0;
     await persistQuoteState(phone, state);
-    const prompt = STEP_PROMPTS.plan_type;
+    const prompt = getStepPrompt('plan_type');
     await sendTextMessage(phone, prompt, computeDelaySeconds());
     await saveMessage(phone, 'assistant', prompt);
   } else {
@@ -441,7 +549,7 @@ async function handleConfirmStep(phone: string, text: string, state: QuoteState)
     await persistQuoteState(phone, state);
     const nextStepPrompt = state.currentStep === 'confirm'
       ? buildConfirmationMessage(state)
-      : STEP_PROMPTS[state.currentStep];
+      : getStepPrompt(state.currentStep);
     await sendTextMessage(phone, nextStepPrompt, computeDelaySeconds());
     await saveMessage(phone, 'assistant', nextStepPrompt);
     return;
@@ -473,7 +581,7 @@ export async function handleQuoteMessage(
   if (existingState === null || existingState.status === 'complete' || existingState.status === 'abandoned') {
     const freshState = createFreshQuoteState();
     await persistQuoteState(phone, freshState);
-    const prompt = STEP_PROMPTS.lives;
+    const prompt = getStepPrompt('lives');
     await sendTextMessage(phone, prompt, computeDelaySeconds());
     await saveMessage(phone, 'assistant', prompt);
     return;
