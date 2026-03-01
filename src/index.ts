@@ -9,8 +9,8 @@ const app = express();
 app.use(express.json({ limit: '5mb' }));
 
 
-// Health check
-app.get('/health', (_req, res) => {
+// Health check (root + /health — Render checks "/" by default)
+app.get(['/', '/health'], (_req, res) => {
   res.json({ status: 'ok', service: 'issy-assistant', timestamp: new Date().toISOString() });
 });
 
