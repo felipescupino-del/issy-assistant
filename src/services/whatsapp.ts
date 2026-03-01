@@ -39,6 +39,50 @@ export async function sendTextMessage(
   );
 }
 
+export interface WelcomeButton {
+  id: string;
+  label: string;
+}
+
+/**
+ * Send a button list message via Z-API.
+ * Z-API supports up to 3 buttons — perfect for our welcome menu.
+ * Falls back to plain text if the button API fails.
+ *
+ * @param phone - E.164 digits-only format
+ * @param message - Header text displayed above the buttons
+ * @param buttons - Array of {id, label} (max 3)
+ */
+export async function sendButtonListMessage(
+  phone: string,
+  message: string,
+  buttons: WelcomeButton[],
+): Promise<void> {
+  const { instanceId, instanceToken, clientToken } = config.zapi;
+
+  try {
+    await axios.post(
+      `https://api.z-api.io/instances/${instanceId}/token/${instanceToken}/send-button-list`,
+      {
+        phone,
+        message,
+        buttonList: {
+          buttons: buttons.map((b) => ({ id: b.id, label: b.label })),
+        },
+      },
+      {
+        headers: { 'Client-Token': clientToken },
+        timeout: 20_000,
+      },
+    );
+  } catch (err: any) {
+    console.warn('[whatsapp] Button list failed, falling back to text:', err?.message);
+    // Fallback: send as plain text with numbered options
+    const fallbackText = `${message}\n\n${buttons.map((b) => `${b.id}️⃣ ${b.label}`).join('\n')}`;
+    await sendTextMessage(phone, fallbackText, 1);
+  }
+}
+
 /**
  * Compute a randomized delay in integer seconds from the configured ms bounds.
  * Used by the webhook pipeline to vary response timing naturally.

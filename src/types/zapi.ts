@@ -27,6 +27,9 @@ export interface ParsedZApiMessage {
   fromMe: boolean;
   isGroup: boolean;
   timestamp: Date;
+  audioUrl?: string;
+  imageUrl?: string;
+  imageCaption?: string;
 }
 
 /**
@@ -38,12 +41,15 @@ export function parseZApiPayload(body: ZApiWebhookPayload): ParsedZApiMessage | 
   if (body.isGroup) return null;  // v1 ignores group messages
 
   return {
-    phone:       body.phone,
-    text:        body.text?.message ?? null,
-    senderName:  body.senderName ?? body.chatName ?? 'Desconhecido',
-    messageId:   body.messageId,
-    fromMe:      body.fromMe,
-    isGroup:     body.isGroup,
-    timestamp:   new Date(body.momment),
+    phone:        body.phone,
+    text:         body.text?.message ?? body.image?.caption ?? null,
+    senderName:   body.senderName ?? body.chatName ?? 'Desconhecido',
+    messageId:    body.messageId,
+    fromMe:       body.fromMe,
+    isGroup:      body.isGroup,
+    timestamp:    new Date(body.momment),
+    audioUrl:     body.audio?.audioUrl,
+    imageUrl:     body.image?.imageUrl,
+    imageCaption: body.image?.caption,
   };
 }

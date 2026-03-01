@@ -27,5 +27,27 @@ export function parseResponseMarkers(text: string): ParsedResponse {
     cleanText = cleanText.replace(/\[QUOTATION_COMPLETE\]\{[\s\S]*\}/, '').trim();
   }
 
+  cleanText = formatForWhatsApp(cleanText);
+
   return { cleanText, shouldTransfer, quotationData };
+}
+
+/**
+ * Convert markdown formatting to WhatsApp-compatible formatting.
+ * Applied after marker extraction so markers aren't affected.
+ */
+function formatForWhatsApp(text: string): string {
+  return text
+    // Remove OpenAI citation artifacts 【...】
+    .replace(/【[^】]*】/g, '')
+    // Headers (### Header) → bold (*Header*)
+    .replace(/^#{1,6}\s+(.+)$/gm, '*$1*')
+    // Bold **text** or __text__ → *text* (WhatsApp bold)
+    .replace(/\*\*(.+?)\*\*/g, '*$1*')
+    .replace(/__(.+?)__/g, '*$1*')
+    // Bullet points: - item → • item
+    .replace(/^- /gm, '• ')
+    // Clean up excessive blank lines
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }

@@ -8,13 +8,14 @@ import { getOrCreateConversation, isHumanMode, isSessionExpired, touchConversati
 import { loadHistory, saveMessage } from '../services/history';
 import { classifyIntent } from '../services/intent';
 import { generateResponse } from '../services/ai';
-import { sendTextMessage, computeDelaySeconds } from '../services/whatsapp';
+import { sendTextMessage, sendButtonListMessage, computeDelaySeconds } from '../services/whatsapp';
 import { detectProductType } from '../data/insuranceFacts';
 import { isAdminCommand, isAdminPhone, handleAdminCommand } from '../services/admin';
 import { executeHandoff } from '../services/handoff';
 import { handleQuoteMessage, getQuoteState } from '../services/quoteService';
 import { parseResponseMarkers } from '../services/responseParser';
-import { WELCOME_MESSAGE } from '../data/welcomeMessage';
+import { transcribeAudio } from '../services/transcription';
+import { WELCOME_MESSAGE, WELCOME_BUTTON_TEXT, WELCOME_BUTTONS } from '../data/welcomeMessage';
 import { config } from '../config';
 
 const router = Router();
@@ -32,10 +33,28 @@ router.post('/', (req, res) => {
 async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   const parsed = parseZApiPayload(body);
 
-  // Guard: ignore non-text messages (image, audio, sticker, etc.)
-  if (!parsed || !parsed.text) return;
+  // Guard: ignore messages we can't handle (sticker, location, etc.)
+  if (!parsed) return;
+  if (!parsed.text && !parsed.audioUrl && !parsed.imageUrl) return;
 
-  const { phone, text, senderName } = parsed;
+  const { phone, senderName } = parsed;
+
+  // Audio: transcribe via Whisper before processing
+  if (parsed.audioUrl && !parsed.text) {
+    const transcription = await transcribeAudio(parsed.audioUrl);
+    if (!transcription) {
+      await sendTextMessage(phone, 'Não consegui entender o áudio, pode me mandar por texto? 😊', 1);
+      return;
+    }
+    parsed.text = transcription;
+  }
+
+  // Image without caption: set default text
+  if (parsed.imageUrl && !parsed.text) {
+    parsed.text = 'O corretor enviou esta imagem';
+  }
+
+  const text = parsed.text!;
 
   // Step 1: Persist contact — upsert by phone, sync senderName
   const contact = await upsertContact(phone, senderName);
@@ -65,7 +84,7 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   // Step 6: Welcome flow — send menu after 30min inactivity or first message
   const sessionExpired = isSessionExpired(conversation);
   if ((firstMsg || sessionExpired) && intent !== 'handoff') {
-    await sendTextMessage(phone, WELCOME_MESSAGE, 1);
+    await sendButtonListMessage(phone, WELCOME_BUTTON_TEXT, WELCOME_BUTTONS);
     await saveMessage(phone, 'assistant', WELCOME_MESSAGE);
     console.log(`[webhook] Welcome sent to ${phone} (firstMsg=${firstMsg}, sessionExpired=${sessionExpired})`);
     // Don't return — continue processing the user's actual message below
@@ -108,7 +127,7 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   const nameToUse = firstMsg ? senderName : contact.name;
   const rawResponse = await generateResponse(nameToUse, history, aiText, intent, productType, {
     isNewSession: sessionExpired,
-  });
+  }, parsed.imageUrl);
 
   // Step 14: Parse response markers ([TRANSFER], [QUOTATION_COMPLETE])
   const { cleanText, shouldTransfer } = parseResponseMarkers(rawResponse);

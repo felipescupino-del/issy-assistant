@@ -23,8 +23,17 @@ export async function generateResponse(
   intent: Intent,
   productType: ProductType | null = null,
   options: GenerateOptions = {},
+  imageUrl?: string,
 ): Promise<string> {
   const systemPrompt = buildSystemPrompt(contactName, intent, productType, options);
+
+  // Build user message — with image content array if imageUrl is provided
+  const userContent: OpenAI.Chat.ChatCompletionContentPart[] | string = imageUrl
+    ? [
+        { type: 'text' as const, text: currentMessage },
+        { type: 'image_url' as const, image_url: { url: imageUrl } },
+      ]
+    : currentMessage;
 
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
     { role: 'system', content: systemPrompt },
@@ -32,7 +41,7 @@ export async function generateResponse(
       role: m.role as 'user' | 'assistant',
       content: m.content,
     })),
-    { role: 'user', content: currentMessage },
+    { role: 'user', content: userContent },
   ];
 
   try {
