@@ -57,11 +57,11 @@ export async function sendButtonListMessage(
   phone: string,
   message: string,
   buttons: WelcomeButton[],
-): Promise<void> {
+): Promise<boolean> {
   const { instanceId, instanceToken, clientToken } = config.zapi;
 
   try {
-    await axios.post(
+    const res = await axios.post(
       `https://api.z-api.io/instances/${instanceId}/token/${instanceToken}/send-button-list`,
       {
         phone,
@@ -75,11 +75,11 @@ export async function sendButtonListMessage(
         timeout: 20_000,
       },
     );
+    console.log('[whatsapp] Button list sent:', JSON.stringify(res.data));
+    return true;
   } catch (err: any) {
-    console.warn('[whatsapp] Button list failed, falling back to text:', err?.message);
-    // Fallback: send as plain text with numbered options
-    const fallbackText = `${message}\n\n${buttons.map((b) => `${b.id}️⃣ ${b.label}`).join('\n')}`;
-    await sendTextMessage(phone, fallbackText, 1);
+    console.warn('[whatsapp] Button list failed:', err?.message);
+    return false;
   }
 }
 
