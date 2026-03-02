@@ -7,6 +7,7 @@ import { config } from '../config';
 import { sendTextMessage } from './whatsapp';
 import { setHumanMode } from './conversation';
 import { saveMessage } from './history';
+import { OpenAIError } from '../errors';
 
 const openai = new OpenAI({ apiKey: config.openai.apiKey });
 
@@ -47,7 +48,8 @@ async function generateConversationSummary(
     const summary = completion.choices[0]?.message?.content?.trim();
     if (summary) return summary;
   } catch (err) {
-    console.error('[handoff] Falha ao gerar resumo via IA, usando fallback:', (err as Error).message);
+    const wrappedErr = new OpenAIError('Failed to generate handoff summary', err);
+    console.error('[handoff] Falha ao gerar resumo via IA, usando fallback:', wrappedErr.message);
   }
 
   // Fallback: last 3 user messages as bullet points

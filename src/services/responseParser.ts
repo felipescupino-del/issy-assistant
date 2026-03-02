@@ -36,7 +36,7 @@ export function parseResponseMarkers(text: string): ParsedResponse {
  * Convert markdown formatting to WhatsApp-compatible formatting.
  * Applied after marker extraction so markers aren't affected.
  */
-function formatForWhatsApp(text: string): string {
+export function formatForWhatsApp(text: string): string {
   return text
     // Remove OpenAI citation artifacts 【...】
     .replace(/【[^】]*】/g, '')

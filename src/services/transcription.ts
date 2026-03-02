@@ -4,6 +4,7 @@
 import OpenAI, { toFile } from 'openai';
 import axios from 'axios';
 import { config } from '../config';
+import { OpenAIError } from '../errors';
 
 const openai = new OpenAI({ apiKey: config.openai.apiKey });
 
@@ -30,7 +31,8 @@ export async function transcribeAudio(audioUrl: string): Promise<string | null> 
     console.log(`[transcription] Transcribed ${text.length} chars from audio`);
     return text;
   } catch (err: any) {
-    console.error('[transcription] Whisper error:', err?.message);
+    const wrappedErr = new OpenAIError('Failed to transcribe audio', err);
+    console.error('[transcription] Whisper error:', wrappedErr.message);
     return null;
   }
 }

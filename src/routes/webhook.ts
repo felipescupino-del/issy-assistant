@@ -108,19 +108,25 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   const quoteState = await getQuoteState(phone);
 
   // Step 9: Route to quote flow if active session OR new quote intent
+  let messageSavedInStep9 = false;
   if (quoteState?.status === 'collecting' || quoteState?.status === 'confirming' || intent === 'quote') {
     await saveMessage(phone, 'user', text);
+    messageSavedInStep9 = true;
     const stateToPass = intent === 'quote' ? null : quoteState;
-    await handleQuoteMessage(phone, text, stateToPass);
-    console.log(`[webhook] Quote flow for ${phone} (step=${quoteState?.currentStep ?? 'new'}, intent=${intent})`);
-    return;
+    const result = await handleQuoteMessage(phone, text, stateToPass);
+    console.log(`[webhook] Quote flow for ${phone} (step=${quoteState?.currentStep ?? 'new'}, intent=${intent}, handled=${result.handled})`);
+
+    if (result.handled) return; // quote flow took care of it
+    // else: fall through to normal Q&A processing (Steps 10-17)
   }
 
   // Step 10: Load history BEFORE saving current user message — prevents doubling
   const history = await loadHistory(phone);
 
-  // Step 11: Save the incoming user message
-  await saveMessage(phone, 'user', text);
+  // Step 11: Save the incoming user message (skip if already saved in Step 9)
+  if (!messageSavedInStep9) {
+    await saveMessage(phone, 'user', text);
+  }
 
   // Step 12: Detect product type for facts injection
   const productType = detectProductType(text);
@@ -158,7 +164,7 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
  * Expand menu number into meaningful text so the AI understands what the broker wants.
  * Returns null if the text is not a menu number.
  */
-function expandMenuNumber(text: string): string | null {
+export function expandMenuNumber(text: string): string | null {
   const trimmed = text.trim();
   if (trimmed === '1') return 'Quero tirar dúvidas sobre seguros';
   if (trimmed === '2') return 'Quero fazer uma cotação';

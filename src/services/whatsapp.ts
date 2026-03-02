@@ -4,6 +4,7 @@
 
 import axios from 'axios';
 import { config } from '../config';
+import { ZApiError } from '../errors';
 
 /**
  * Send a plain text message via Z-API with a typing indicator.
@@ -78,7 +79,8 @@ export async function sendButtonListMessage(
     console.log('[whatsapp] Button list sent:', JSON.stringify(res.data));
     return true;
   } catch (err: any) {
-    console.warn('[whatsapp] Button list failed:', err?.message);
+    const wrappedErr = new ZApiError('Failed to send button list', err);
+    console.warn('[whatsapp] Button list failed:', wrappedErr.message);
     return false;
   }
 }

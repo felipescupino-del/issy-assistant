@@ -5,6 +5,7 @@ import { config } from '../config';
 import { Intent } from './intent';
 import { ProductType, InsuranceFacts } from '../types/index';
 import { insuranceFacts } from '../data/insuranceFacts';
+import { OpenAIError } from '../errors';
 
 const openai = new OpenAI({ apiKey: config.openai.apiKey });
 
@@ -54,6 +55,7 @@ export async function generateResponse(
 
     return completion.choices[0]?.message?.content ?? getFallbackMessage();
   } catch (err: any) {
+    const wrappedErr = new OpenAIError('Failed to generate AI response', err);
     console.error('[ai] Erro ao chamar OpenAI:', {
       message: err?.message,
       status: err?.status,
@@ -61,6 +63,7 @@ export async function generateResponse(
       type: err?.type,
       model: config.openai.model,
       keyPrefix: config.openai.apiKey?.slice(0, 10) + '...',
+      wrappedCode: wrappedErr.code,
     });
     return getFallbackMessage();
   }
@@ -70,7 +73,7 @@ export async function generateResponse(
  * Builds the system prompt with Grupo Futura União identity.
  * Intent adjusts focus; productType injects curated facts.
  */
-function buildSystemPrompt(
+export function buildSystemPrompt(
   contactName: string,
   intent: Intent,
   productType: ProductType | null,
@@ -135,7 +138,7 @@ ${productFactsBlock}
 /**
  * Formats an InsuranceFacts object into a readable text block for the system prompt.
  */
-function formatFactsBlock(facts: InsuranceFacts): string {
+export function formatFactsBlock(facts: InsuranceFacts): string {
   const lines: string[] = [];
 
   lines.push(`Produto: ${facts.productName}`);
@@ -156,6 +159,6 @@ function formatFactsBlock(facts: InsuranceFacts): string {
   return lines.join('\n');
 }
 
-function getFallbackMessage(): string {
+export function getFallbackMessage(): string {
   return 'Desculpe, tive um problema ao processar sua mensagem. Pode tentar novamente? 😊';
 }

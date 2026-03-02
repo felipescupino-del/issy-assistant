@@ -11,8 +11,19 @@ import { HEALTH_PLAN, ALLOWED_CITIES } from '../data/healthQuoteMock';
 import { sendTextMessage, computeDelaySeconds } from './whatsapp';
 import { saveMessage } from './history';
 import { config } from '../config';
+import { OpenAIError } from '../errors';
 
 const openai = new OpenAI({ apiKey: config.openai.apiKey });
+
+// ─── Result type ─────────────────────────────────────────────────────────────
+
+export interface QuoteFlowResult {
+  handled: boolean; // true = message was processed as quote data
+}
+
+// ─── Cancel keywords ─────────────────────────────────────────────────────────
+
+const CANCEL_KEYWORDS = ['cancelar', 'cancela', 'parar', 'sair', 'desistir', 'nao quero mais'];
 
 // ─── Type guard ───────────────────────────────────────────────────────────────
 
@@ -70,7 +81,7 @@ async function persistQuoteState(phone: string, state: QuoteState): Promise<void
  * Converts a single age into the corresponding ANS age band string.
  * Bands align with healthQuoteMock.ts ageMultipliers keys.
  */
-function ageToAgeBand(age: number): string | null {
+export function ageToAgeBand(age: number): string | null {
   if (age < 0 || age > 120) return null;
   const bands: [number, number, string][] = [
     [0, 18, '0-18'],
@@ -123,11 +134,11 @@ const CITY_SUBSTRINGS: [string, string][] = [
   ['alegre',      'Porto Alegre'],
 ];
 
-function normalizeText(input: string): string {
+export function normalizeText(input: string): string {
   return input.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-function resolveCity(input: string): string | null {
+export function resolveCity(input: string): string | null {
   const normalized = normalizeText(input);
 
   // Exact alias match
@@ -142,7 +153,7 @@ function resolveCity(input: string): string | null {
   return null;
 }
 
-function resolvePlanType(input: string): 'enfermaria' | 'apartamento' | null {
+export function resolvePlanType(input: string): 'enfermaria' | 'apartamento' | null {
   const lower = input.toLowerCase().trim();
 
   // Enfermaria matches
@@ -244,7 +255,8 @@ Exemplos:
       result.planType = resolvePlanType(parsed.planType);
     }
   } catch (err) {
-    console.error('[quoteService] GPT field extraction error:', err);
+    const wrappedErr = new OpenAIError('GPT field extraction failed', err);
+    console.error('[quoteService] GPT field extraction error:', wrappedErr.message);
   }
 
   return result;
@@ -253,7 +265,7 @@ Exemplos:
 /**
  * Merge extracted fields into state — only fills null fields (never overwrites).
  */
-function mergeExtractedFields(state: QuoteState, extracted: ExtractedFields): void {
+export function mergeExtractedFields(state: QuoteState, extracted: ExtractedFields): void {
   if (state.lives === null && extracted.lives !== null) state.lives = extracted.lives;
   if (state.ageRange === null && extracted.ageRange !== null) state.ageRange = extracted.ageRange;
   if (state.city === null && extracted.city !== null) state.city = extracted.city;
@@ -263,7 +275,7 @@ function mergeExtractedFields(state: QuoteState, extracted: ExtractedFields): vo
 /**
  * Returns the list of field names that are still missing from state.
  */
-function getMissingFields(state: QuoteState): string[] {
+export function getMissingFields(state: QuoteState): string[] {
   const missing: string[] = [];
   if (state.lives === null) missing.push('lives');
   if (state.ageRange === null) missing.push('ageRange');
@@ -328,7 +340,8 @@ Maximo 3 linhas.`,
     const response = completion.choices[0]?.message?.content?.trim();
     return response && response.length > 0 ? response : fallback;
   } catch (err) {
-    console.error('[quoteService] GPT missing fields question error:', err);
+    const wrappedErr = new OpenAIError('GPT missing fields question failed', err);
+    console.error('[quoteService] GPT missing fields question error:', wrappedErr.message);
     return fallback;
   }
 }
@@ -336,7 +349,7 @@ Maximo 3 linhas.`,
 /**
  * Deterministic fallback if GPT fails to generate the question.
  */
-function buildFallbackQuestion(missingFields: string[]): string {
+export function buildFallbackQuestion(missingFields: string[]): string {
   const fieldLabels: Record<string, string> = {
     lives: 'numero de vidas',
     ageRange: 'faixa etaria',
@@ -354,7 +367,7 @@ function buildFallbackQuestion(missingFields: string[]): string {
 
 // ─── Confirmation / quote builders ───────────────────────────────────────────
 
-function buildConfirmationMessage(state: QuoteState): string {
+export function buildConfirmationMessage(state: QuoteState): string {
   const planTypeDisplay = state.planType === 'apartamento' ? 'Apartamento' : 'Enfermaria';
   return (
     'Vou confirmar os dados da cotacao:\n\n' +
@@ -366,7 +379,7 @@ function buildConfirmationMessage(state: QuoteState): string {
   );
 }
 
-function findAgeBandMultiplier(ageRange: string): number {
+export function findAgeBandMultiplier(ageRange: string): number {
   const match = ageRange.match(/^(\d+)-(\d+)$/);
   if (!match) return 1.0;
   const midpoint = (parseInt(match[1], 10) + parseInt(match[2], 10)) / 2;
@@ -389,7 +402,7 @@ function findAgeBandMultiplier(ageRange: string): number {
   return HEALTH_PLAN.ageMultipliers[key] ?? 1.0;
 }
 
-function buildQuoteMessage(state: QuoteState): string {
+export function buildQuoteMessage(state: QuoteState): string {
   const lives = state.lives ?? 1;
   const ageRange = state.ageRange ?? '29-33';
   const city = state.city ?? 'Sao Paulo';
@@ -500,7 +513,7 @@ export async function handleQuoteMessage(
   phone: string,
   text: string,
   existingState: QuoteState | null,
-): Promise<void> {
+): Promise<QuoteFlowResult> {
   console.log(`[quoteService] handleQuoteMessage phone=${phone} step=${existingState?.currentStep ?? 'new'} status=${existingState?.status ?? 'new'}`);
 
   // 1. Start fresh if no state or previous quote is finished
@@ -515,11 +528,22 @@ export async function handleQuoteMessage(
   // 2. Confirming — delegate to confirm handler
   if (state.status === 'confirming') {
     await handleConfirmStep(phone, text, state);
-    return;
+    return { handled: true };
   }
 
   // 3. Collecting — Extract → Merge → Ask Missing
   if (state.status === 'collecting') {
+    // Check for explicit cancel keywords before AI extraction
+    const normalizedInput = normalizeText(text);
+    if (CANCEL_KEYWORDS.some((kw) => normalizedInput.includes(kw))) {
+      state.status = 'abandoned';
+      await persistQuoteState(phone, state);
+      const cancelMsg = 'Cotação cancelada! Como posso te ajudar? 😊';
+      await sendTextMessage(phone, cancelMsg, computeDelaySeconds());
+      await saveMessage(phone, 'assistant', cancelMsg);
+      return { handled: true };
+    }
+
     // Extract all fields from user text
     const extracted = await extractAllQuoteFields(text);
     console.log(`[quoteService] extracted:`, JSON.stringify(extracted));
@@ -527,23 +551,22 @@ export async function handleQuoteMessage(
     // Merge into state (only fills nulls)
     mergeExtractedFields(state, extracted);
 
-    // Check progress — if no new data for 3 rounds, offer transfer
+    // Check progress
     const missing = getMissingFields(state);
     const extractedNothing = extracted.lives === null && extracted.ageRange === null && extracted.city === null && extracted.planType === null;
 
     if (extractedNothing) {
       state.retryCount += 1;
+
+      // 2nd consecutive message with no quote data — user likely changed subject
+      if (state.retryCount >= 2) {
+        state.status = 'abandoned';
+        await persistQuoteState(phone, state);
+        console.log(`[quoteService] Abandoning quote for ${phone} — no data extracted for ${state.retryCount} rounds`);
+        return { handled: false };
+      }
     } else {
       state.retryCount = 0;
-    }
-
-    if (state.retryCount >= 3) {
-      state.retryCount = 0;
-      await persistQuoteState(phone, state);
-      const transferMsg = 'Parece que ta dificil coletar os dados 😅 Quer que eu transfira pra um consultor humano? Manda *sim* ou tenta me passar os dados novamente.';
-      await sendTextMessage(phone, transferMsg, computeDelaySeconds());
-      await saveMessage(phone, 'assistant', transferMsg);
-      return;
     }
 
     if (missing.length === 0) {
@@ -562,8 +585,9 @@ export async function handleQuoteMessage(
       await sendTextMessage(phone, question, computeDelaySeconds());
       await saveMessage(phone, 'assistant', question);
     }
-    return;
+    return { handled: true };
   }
 
   console.log(`[quoteService] Unhandled state status: ${state.status}`);
+  return { handled: true };
 }
