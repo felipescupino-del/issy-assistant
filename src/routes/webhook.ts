@@ -21,6 +21,36 @@ import { config } from '../config';
 
 const router = Router();
 
+// Anti-loop: track recent messages per phone to detect bot-to-bot loops
+const recentMessages = new Map<string, { count: number; firstSeen: number }>();
+const LOOP_WINDOW_MS = 60_000; // 1 minute window
+const LOOP_MAX_MESSAGES = 4;   // max messages from same phone in window
+
+function isLooping(phone: string): boolean {
+  const now = Date.now();
+  const entry = recentMessages.get(phone);
+
+  if (!entry || now - entry.firstSeen > LOOP_WINDOW_MS) {
+    recentMessages.set(phone, { count: 1, firstSeen: now });
+    return false;
+  }
+
+  entry.count++;
+  if (entry.count > LOOP_MAX_MESSAGES) {
+    console.log(`[webhook] Loop detected for ${phone} — ${entry.count} msgs in ${Math.round((now - entry.firstSeen) / 1000)}s, ignoring`);
+    return true;
+  }
+  return false;
+}
+
+// Cleanup stale entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [phone, entry] of recentMessages) {
+    if (now - entry.firstSeen > LOOP_WINDOW_MS * 2) recentMessages.delete(phone);
+  }
+}, 5 * 60_000);
+
 router.post('/', (req, res) => {
   // Acknowledge immediately — Z-API expects a fast 2xx response
   res.json({ status: 'received' });
@@ -39,6 +69,9 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   if (!parsed.text && !parsed.audioUrl && !parsed.imageUrl) return;
 
   const { phone, senderName } = parsed;
+
+  // Anti-loop: if this phone is sending too many messages too fast, ignore
+  if (isLooping(phone)) return;
 
   // Audio: transcribe via Whisper before processing
   if (parsed.audioUrl && !parsed.text) {
