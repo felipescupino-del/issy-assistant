@@ -16,6 +16,7 @@ import { handleQuoteMessage, getQuoteState } from '../services/quoteService';
 import { parseResponseMarkers } from '../services/responseParser';
 import { transcribeAudio } from '../services/transcription';
 import { WELCOME_MESSAGE, WELCOME_BUTTON_TEXT, WELCOME_BUTTONS } from '../data/welcomeMessage';
+import { notifyCampaignReply } from '../services/campaignNotifier';
 import { config } from '../config';
 
 const router = Router();
@@ -59,6 +60,25 @@ async function processMessage(body: ZApiWebhookPayload): Promise<void> {
   // Step 1: Persist contact — upsert by phone, sync senderName
   const contact = await upsertContact(phone, senderName);
   const firstMsg = isFirstMessage(contact);
+
+  // Step 1b: Check if broker is in active campaign
+  const isCampaignBroker = await notifyCampaignReply(phone);
+  if (isCampaignBroker) {
+    console.log(`[webhook] Campaign broker replied: ${phone} — skipping Luna, handoff to human`);
+    await saveMessage(phone, 'user', text);
+    await sendTextMessage(
+      phone,
+      `Oi ${contact.name?.split(' ')[0] ?? ''}! Que bom receber sua resposta 😊 Vou te conectar com nosso time agora mesmo.`,
+      2,
+    );
+    await saveMessage(phone, 'assistant', 'Mensagem de acolhimento de campanha enviada');
+    const conversation = await getOrCreateConversation(phone);
+    if (!isHumanMode(conversation)) {
+      const handoffHistory = await loadHistory(phone);
+      await executeHandoff(phone, contact, handoffHistory, config.admin.phoneNumbers[0]);
+    }
+    return;
+  }
 
   // Step 2: Classify intent (supports menu numbers 1/2/3 and keywords)
   const intent = classifyIntent(text);
