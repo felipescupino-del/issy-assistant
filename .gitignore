@@ -1,9 +1,7 @@
 node_modules
 dist/
-.next/
 # Keep environment variables out of version control
 .env
 
 /src/generated/prisma
 coverage/
-next-env.d.ts

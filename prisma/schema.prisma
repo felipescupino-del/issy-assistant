@@ -11,37 +11,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── ImportBatch ──────────────────────────────────────────────────────────
-// Groups brokers imported together via CSV upload.
-model ImportBatch {
-  id         Int      @id @default(autoincrement())
-  name       String   @map("nome")
-  count      Int      @default(0) @map("quantidade")
-  importedAt DateTime @default(now()) @map("importado_em")
-  brokers    Broker[]
-
-  @@map("lotes_importacao")
-}
-
-// ─── Broker ───────────────────────────────────────────────────────────────
-// Insurance broker imported from CSV. Optionally linked to an import batch.
-model Broker {
-  id            Int          @id @default(autoincrement())
-  name          String       @map("nome")
-  email         String?      @map("email")
-  phone         String?      @unique @map("telefone")
-  susep         String?      @map("susep")
-  city          String?      @map("cidade")
-  state         String?      @map("estado")
-  importBatchId Int?         @map("lote_id")
-  createdAt     DateTime     @default(now()) @map("criado_em")
-  updatedAt     DateTime     @updatedAt @map("atualizado_em")
-
-  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id])
-
-  @@map("corretores")
-}
-
 // ─── Contact ──────────────────────────────────────────────────────────────
 // Represents a WhatsApp user (broker). Identified by phone number.
 model Contact {
